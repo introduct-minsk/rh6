@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="warn">
+
+    <Properties>
+        <Property name="LOG_EXCEPTION_CONVERSION_WORD">%xwEx</Property>
+        <Property name="LOG_LEVEL_PATTERN">%5p</Property>
+        <Property name="LOG_DATEFORMAT_PATTERN">yyyy-MM-dd HH:mm:ss.SSS</Property>
+        <Property name="CONSOLE_LOG_PATTERN">%clr{%d{${LOG_DATEFORMAT_PATTERN}}}{faint} %clr{${LOG_LEVEL_PATTERN}} %clr{%pid}{magenta} %clr{---}{faint} %clr{[%15.15t]}{faint} %clr{%-40.40c{1.}}{cyan} %clr{:}{faint} %m%n${sys:LOG_EXCEPTION_CONVERSION_WORD}</Property>
+        <Property name="SYSLOG_HOST">${env:SYSLOG_HOST:-0.0.0.0}</Property>
+        <Property name="SYSLOG_PORT">${env:SYSLOG_PORT:-514}</Property>
+        <Property name="SYSLOG_PROTOCOL">${env:SYSLOG_PROTOCOL:-TCP}</Property>
+        <Property name="SYSLOG_APP_NAME">${env:SYSLOG_APP_NAME:-service}</Property>
+    </Properties>
+
+    <Appenders>
+        <Console name="Console" target="SYSTEM_OUT" follow="true">
+            <PatternLayout pattern="${sys:CONSOLE_LOG_PATTERN}"/>
+        </Console>
+
+        <Syslog name="Syslog" host="${SYSLOG_HOST}" port="${SYSLOG_PORT}" protocol="${SYSLOG_PROTOCOL}"
+                appName="${SYSLOG_APP_NAME}" format="RFC5424" newLine="true" ignoreExceptions="true">
+            <LoggerFields>
+                <KeyValuePair key="thread" value="%t"/>
+                <KeyValuePair key="category" value="%c"/>
+                <KeyValuePair key="exception" value="%ex{full}"/>
+            </LoggerFields>
+        </Syslog>
+
+        <Async name="Async">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="Syslog"/>
+        </Async>
+    </Appenders>
+
+    <Loggers>
+        <Root level="info">
+            <AppenderRef ref="Async"/>
+        </Root>
+    </Loggers>
+</Configuration>

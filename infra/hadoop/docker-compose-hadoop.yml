@@ -1,0 +1,97 @@
+version: "3.4"
+
+services:
+  namenode:
+    image: nexus.ria.ee:8500/bde2020/hadoop-namenode:2.0.0-hadoop3.2.1-java8
+    container_name: namenode
+    restart: always
+    network_mode: host
+    volumes:
+      - hadoop_namenode:/hadoop/dfs/name
+    environment:
+      - CLUSTER_NAME=test
+    env_file:
+      - ./hadoop.env
+
+  datanode:
+    image: nexus.ria.ee:8500/bde2020/hadoop-datanode:2.0.0-hadoop3.2.1-java8
+    container_name: datanode
+    restart: always
+    network_mode: host
+    volumes:
+      - hadoop_datanode:/hadoop/dfs/data
+    environment:
+      SERVICE_PRECONDITION: "10.1.19.36:9870"
+    env_file:
+      - ./hadoop.env
+
+  datanode-2:
+    image: nexus.ria.ee:8500/bde2020/hadoop-datanode:2.0.0-hadoop3.2.1-java8
+    container_name: datanode-2
+    restart: always
+    network_mode: host
+    volumes:
+      - hadoop_datanode_2:/hadoop/dfs/data
+    environment:
+      - SERVICE_PRECONDITION=10.1.19.36:9870
+      - HDFS_CONF_dfs_datanode_http_address=10.1.19.36:50076
+      - HDFS_CONF_dfs_datanode_https_address=10.1.19.36:50476
+      - HDFS_CONF_dfs_datanode_address=10.1.19.36:50011
+      - HDFS_CONF_dfs_datanode_ipc_address=10.1.19.36:50021
+    env_file:
+      - ./hadoop.env
+
+  datanode-3:
+    image: nexus.ria.ee:8500/bde2020/hadoop-datanode:2.0.0-hadoop3.2.1-java8
+    container_name: datanode-3
+    restart: always
+    network_mode: host
+    volumes:
+      - hadoop_datanode_3:/hadoop/dfs/data
+    environment:
+      - SERVICE_PRECONDITION=10.1.19.36:9870
+      - HDFS_CONF_dfs_datanode_http_address=10.1.19.36:50077
+      - HDFS_CONF_dfs_datanode_https_address=10.1.19.36:50477
+      - HDFS_CONF_dfs_datanode_address=10.1.19.36:50012
+      - HDFS_CONF_dfs_datanode_ipc_address=10.1.19.36:50022
+    env_file:
+      - ./hadoop.env
+
+  resourcemanager:
+    image: nexus.ria.ee:8500/bde2020/hadoop-resourcemanager:2.0.0-hadoop3.2.1-java8
+    container_name: resourcemanager
+    restart: always
+    network_mode: host
+    environment:
+      SERVICE_PRECONDITION: "10.1.19.36:9000 10.1.19.36:9870 10.1.19.36:9864"
+    env_file:
+      - ./hadoop.env
+
+  nodemanager1:
+    image: nexus.ria.ee:8500/bde2020/hadoop-nodemanager:2.0.0-hadoop3.2.1-java8
+    container_name: nodemanager
+    restart: always
+    network_mode: host
+    environment:
+      SERVICE_PRECONDITION: "10.1.19.36:9000 10.1.19.36:9870 10.1.19.36:9864 10.1.19.36:8088"
+    env_file:
+      - ./hadoop.env
+  
+  historyserver:
+    image: nexus.ria.ee:8500/bde2020/hadoop-historyserver:2.0.0-hadoop3.2.1-java8
+    container_name: historyserver
+    restart: always
+    network_mode: host
+    environment:
+      SERVICE_PRECONDITION: "10.1.19.36:9000 10.1.19.36:9870 10.1.19.36:9864 10.1.19.36:8088"
+    volumes:
+      - hadoop_historyserver:/hadoop/yarn/timeline
+    env_file:
+      - ./hadoop.env
+
+volumes:
+  hadoop_namenode:
+  hadoop_datanode:
+  hadoop_datanode_2:
+  hadoop_datanode_3:
+  hadoop_historyserver:

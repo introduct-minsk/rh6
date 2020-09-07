@@ -1,0 +1,48 @@
+pipeline {
+    environment {
+      PRIVATE_REGISTRY="harbor.riaint.ee/rh6"
+      PUBLIC_REGISTRY="nexus.ria.ee:8500/"
+      DOCKER_TAG = "latest"
+      FQDN='rh6-component1-01.dev.riaint.ee'
+      IP='10.1.19.35'
+    }
+    triggers {
+        pollSCM '* * * * *'
+    }
+    agent any
+    stages {
+        stage('deploy') {
+            agent { label 'master' }
+            when {
+                anyOf {
+                    changeset "infra/lb/**"
+                    expression { currentBuild.getBuildCauses()[0].shortDescription.startsWith("Started by user") }
+                    expression { return currentBuild.number == 1 }
+                }
+            }
+            steps {
+                script {
+                    withCredentials([
+                            sshUserPrivateKey(credentialsId: "riajenk-ssh", usernameVariable: 'username', keyFileVariable: 'keyfile'),
+                            usernamePassword(credentialsId: 'jenkins-harbor', usernameVariable: 'dockerUserName', passwordVariable: 'dockerPassword')]){
+                        def remote = [:]
+                        remote.name = "${FQDN}"
+                        remote.host = "${IP}"
+                        remote.user = "${username}"
+                        remote.identityFile = "${keyfile}"
+                        remote.allowAnyHosts = true
+                        sshPut remote: remote, from: 'infra/lb/docker-compose.yml', into: '/opt/riajenk/docker-compose-lb.yml'
+                        sshPut remote: remote, from: 'infra/lb/lb_config', into: '/opt/riajenk/'
+                        sshPut remote: remote, from: 'infra/pki/ca.crt', into: '/opt/riajenk/lb_config/'
+                        sshCommand(remote: remote, command: "sudo dpkg -S docker.io || sudo apt-get install -yf docker.io", sudo: true)
+                        sshCommand(remote: remote, command: "ls /usr/local/bin/docker-compose || sudo curl -L \"https://github.com/docker/compose/releases/download/1.25.5/docker-compose-\$(uname -s)-\$(uname -m)\" -o /usr/local/bin/docker-compose", sudo: true)
+                        sshCommand(remote: remote, command: "chmod +x /usr/local/bin/docker-compose", sudo: true)
+                        sshCommand(remote: remote, command: "docker login ${PRIVATE_REGISTRY} -u '${dockerUserName}' -p '${dockerPassword}'", sudo: true)
+                        sshCommand(remote: remote, command: "PRIVATE_REGISTRY='${PRIVATE_REGISTRY}/' PUBLIC_REGISTRY=${PUBLIC_REGISTRY} DOCKER_TAG=${DOCKER_TAG} docker-compose -p rh6_deploy -f /opt/riajenk/docker-compose-lb.yml up -d", sudo: true)
+                        sshCommand(remote: remote, command: "docker exec rh6_lb sh -c 'nginx -s reload' || true", sudo: true)
+                    }
+                }
+            }
+        }
+    }
+}

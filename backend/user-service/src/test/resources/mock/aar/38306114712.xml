@@ -1,0 +1,299 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<soap:Envelope xmlns:aar="http://producers.aar.xtee.riik.ee/producer/aar" xmlns:id="http://x-road.eu/xsd/identifiers" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xrd="http://x-road.eu/xsd/xroad.xsd" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <soap:Header>
+        <xrd:protocolVersion>4.0</xrd:protocolVersion>
+        <xrd:client id:objectType="SUBSYSTEM">
+            <id:memberCode>70006317</id:memberCode>
+            <id:memberClass>GOV</id:memberClass>
+            <id:subsystemCode>riigiportaal-citizen</id:subsystemCode>
+            <id:xRoadInstance>ee-dev</id:xRoadInstance>
+        </xrd:client>
+        <xrd:service id:objectType="SERVICE">
+            <id:subsystemCode>aar</id:subsystemCode>
+            <id:serviceCode>oigused</id:serviceCode>
+            <id:xRoadInstance>ee-dev</id:xRoadInstance>
+            <id:serviceVersion>v1</id:serviceVersion>
+            <id:memberClass>GOV</id:memberClass>
+            <id:memberCode>70006317</id:memberCode>
+        </xrd:service>
+        <xrd:id>${=java.util.UUID.randomUUID()}</xrd:id>
+        <xrd:requestHash algorithmId="http://www.w3.org/2001/04/xmlenc#sha512">3EF9yEjzGhgrXjz7JVVbO08NydChqGxF9VdSzhz0dO3lEcnOh2WYM8+TKPSWcfzvGsHLf3hXFYJC2o1aC6LbFg==</xrd:requestHash>
+    </soap:Header>
+    <soap:Body>
+        <aar:oigusedResponse>
+            <paring>
+                <isikukood>38306114712</isikukood>
+            </paring>
+            <keha>
+                <oigused>
+                    <oigus>
+                        <ametikohtAlates xsi:nil="true"></ametikohtAlates>
+                        <grupp xsi:nil="true"></grupp>
+                        <oigusNimi>GENERAL.ASUTUS_ESINDAJA</oigusNimi>
+                        <ametikohtNimetus xsi:nil="true"></ametikohtNimetus>
+                        <isikukood>38306114712</isikukood>
+                        <ametikohtId>102328</ametikohtId>
+                        <allyksusId xsi:nil="true"></allyksusId>
+                        <ksAmetikohtId xsi:nil="true"></ksAmetikohtId>
+                        <oigusAlates>2009-11-25</oigusAlates>
+                        <ametikohtKuni xsi:nil="true"></ametikohtKuni>
+                        <registrikood>10798424</registrikood>
+                        <oigusKuni xsi:nil="true"></oigusKuni>
+                    </oigus>
+                    <oigus>
+                        <oigusNimi>ASUTUS.ASUTUS_ADMIN</oigusNimi>
+                        <grupp xsi:nil="true"></grupp>
+                        <ametikohtAlates xsi:nil="true"></ametikohtAlates>
+                        <ametikohtNimetus xsi:nil="true"></ametikohtNimetus>
+                        <isikukood>38306114712</isikukood>
+                        <allyksusId xsi:nil="true"></allyksusId>
+                        <ametikohtId>102328</ametikohtId>
+                        <oigusAlates>2009-11-25</oigusAlates>
+                        <ksAmetikohtId xsi:nil="true"></ksAmetikohtId>
+                        <ametikohtKuni xsi:nil="true"></ametikohtKuni>
+                        <registrikood>10798424</registrikood>
+                        <oigusKuni xsi:nil="true"></oigusKuni>
+                    </oigus>
+                    <oigus>
+                        <ametikohtNimetus xsi:nil="true"></ametikohtNimetus>
+                        <oigusNimi>XTEEPORTAL.ADMIN</oigusNimi>
+                        <ametikohtAlates xsi:nil="true"></ametikohtAlates>
+                        <grupp xsi:nil="true"></grupp>
+                        <allyksusId xsi:nil="true"></allyksusId>
+                        <ametikohtId>102328</ametikohtId>
+                        <isikukood>38306114712</isikukood>
+                        <ametikohtKuni xsi:nil="true"></ametikohtKuni>
+                        <oigusAlates>2009-11-25</oigusAlates>
+                        <ksAmetikohtId xsi:nil="true"></ksAmetikohtId>
+                        <oigusKuni xsi:nil="true"></oigusKuni>
+                        <registrikood>10798424</registrikood>
+                    </oigus>
+                    <oigus>
+                        <oigusAlates>2009-11-25</oigusAlates>
+                        <ksAmetikohtId xsi:nil="true"></ksAmetikohtId>
+                        <ametikohtKuni xsi:nil="true"></ametikohtKuni>
+                        <registrikood>10798430</registrikood>
+                        <oigusKuni xsi:nil="true"></oigusKuni>
+                        <oigusNimi>GENERAL.ASUTUS_ESINDAJA</oigusNimi>
+                        <grupp xsi:nil="true"></grupp>
+                        <ametikohtAlates xsi:nil="true"></ametikohtAlates>
+                        <ametikohtNimetus xsi:nil="true"></ametikohtNimetus>
+                        <isikukood>38306114712</isikukood>
+                        <allyksusId xsi:nil="true"></allyksusId>
+                        <ametikohtId>102329</ametikohtId>
+                    </oigus>
+                    <oigus>
+                        <registrikood>10798430</registrikood>
+                        <oigusKuni xsi:nil="true"></oigusKuni>
+                        <oigusAlates>2009-11-25</oigusAlates>
+                        <ksAmetikohtId xsi:nil="true"></ksAmetikohtId>
+                        <ametikohtKuni xsi:nil="true"></ametikohtKuni>
+                        <isikukood>38306114712</isikukood>
+                        <allyksusId xsi:nil="true"></allyksusId>
+                        <ametikohtId>102329</ametikohtId>
+                        <oigusNimi>ASUTUS.ASUTUS_ADMIN</oigusNimi>
+                        <grupp xsi:nil="true"></grupp>
+                        <ametikohtAlates xsi:nil="true"></ametikohtAlates>
+                        <ametikohtNimetus xsi:nil="true"></ametikohtNimetus>
+                    </oigus>
+                    <oigus>
+                        <ksAmetikohtId xsi:nil="true"></ksAmetikohtId>
+                        <oigusAlates>2009-11-25</oigusAlates>
+                        <ametikohtKuni xsi:nil="true"></ametikohtKuni>
+                        <registrikood>10798430</registrikood>
+                        <oigusKuni xsi:nil="true"></oigusKuni>
+                        <ametikohtAlates xsi:nil="true"></ametikohtAlates>
+                        <grupp xsi:nil="true"></grupp>
+                        <oigusNimi>XTEEPORTAL.ADMIN</oigusNimi>
+                        <ametikohtNimetus xsi:nil="true"></ametikohtNimetus>
+                        <isikukood>38306114712</isikukood>
+                        <ametikohtId>102329</ametikohtId>
+                        <allyksusId xsi:nil="true"></allyksusId>
+                    </oigus>
+                    <oigus>
+                        <ksAmetikohtId xsi:nil="true"></ksAmetikohtId>
+                        <oigusAlates>2009-11-25</oigusAlates>
+                        <ametikohtKuni xsi:nil="true"></ametikohtKuni>
+                        <registrikood>70006317</registrikood>
+                        <oigusKuni xsi:nil="true"></oigusKuni>
+                        <grupp xsi:nil="true"></grupp>
+                        <ametikohtAlates xsi:nil="true"></ametikohtAlates>
+                        <oigusNimi>GENERAL.ARENDUS</oigusNimi>
+                        <ametikohtNimetus xsi:nil="true"></ametikohtNimetus>
+                        <isikukood>38306114712</isikukood>
+                        <ametikohtId>102327</ametikohtId>
+                        <allyksusId xsi:nil="true"></allyksusId>
+                    </oigus>
+                    <oigus>
+                        <registrikood>70006317</registrikood>
+                        <oigusKuni xsi:nil="true"></oigusKuni>
+                        <oigusAlates>2009-11-25</oigusAlates>
+                        <ksAmetikohtId xsi:nil="true"></ksAmetikohtId>
+                        <ametikohtKuni xsi:nil="true"></ametikohtKuni>
+                        <isikukood>38306114712</isikukood>
+                        <allyksusId xsi:nil="true"></allyksusId>
+                        <ametikohtId>102327</ametikohtId>
+                        <oigusNimi>GENERAL.ADMIN</oigusNimi>
+                        <ametikohtAlates xsi:nil="true"></ametikohtAlates>
+                        <grupp xsi:nil="true"></grupp>
+                        <ametikohtNimetus xsi:nil="true"></ametikohtNimetus>
+                    </oigus>
+                    <oigus>
+                        <oigusKuni xsi:nil="true"></oigusKuni>
+                        <registrikood>70006317</registrikood>
+                        <ametikohtKuni xsi:nil="true"></ametikohtKuni>
+                        <oigusAlates>2010-12-07</oigusAlates>
+                        <ksAmetikohtId xsi:nil="true"></ksAmetikohtId>
+                        <allyksusId xsi:nil="true"></allyksusId>
+                        <ametikohtId>102327</ametikohtId>
+                        <isikukood>38306114712</isikukood>
+                        <ametikohtNimetus xsi:nil="true"></ametikohtNimetus>
+                        <oigusNimi>GENERAL.RIHA_VIISARD_HALDUR</oigusNimi>
+                        <ametikohtAlates xsi:nil="true"></ametikohtAlates>
+                        <grupp xsi:nil="true"></grupp>
+                    </oigus>
+                    <oigus>
+                        <ksAmetikohtId xsi:nil="true"></ksAmetikohtId>
+                        <oigusAlates>2010-12-07</oigusAlates>
+                        <ametikohtKuni xsi:nil="true"></ametikohtKuni>
+                        <registrikood>70000332</registrikood>
+                        <oigusKuni xsi:nil="true"></oigusKuni>
+                        <grupp xsi:nil="true"></grupp>
+                        <ametikohtAlates xsi:nil="true"></ametikohtAlates>
+                        <oigusNimi>GENERAL.RIHA_KLASS_KOOSKOLASTAJA</oigusNimi>
+                        <ametikohtNimetus xsi:nil="true"></ametikohtNimetus>
+                        <isikukood>38306114712</isikukood>
+                        <ametikohtId>103686</ametikohtId>
+                        <allyksusId xsi:nil="true"></allyksusId>
+                    </oigus>
+                    <oigus>
+                        <oigusAlates>2011-12-22</oigusAlates>
+                        <ksAmetikohtId xsi:nil="true"></ksAmetikohtId>
+                        <ametikohtKuni xsi:nil="true"></ametikohtKuni>
+                        <registrikood>75000526</registrikood>
+                        <oigusKuni xsi:nil="true"></oigusKuni>
+                        <oigusNimi>RIHA.KLASSIFIKAATOR_ADMIN</oigusNimi>
+                        <grupp xsi:nil="true"></grupp>
+                        <ametikohtAlates xsi:nil="true"></ametikohtAlates>
+                        <ametikohtNimetus xsi:nil="true"></ametikohtNimetus>
+                        <isikukood>38306114712</isikukood>
+                        <allyksusId xsi:nil="true"></allyksusId>
+                        <ametikohtId>103700</ametikohtId>
+                    </oigus>
+                    <oigus>
+                        <oigusKuni xsi:nil="true"></oigusKuni>
+                        <registrikood>10798424</registrikood>
+                        <ametikohtKuni xsi:nil="true"></ametikohtKuni>
+                        <ksAmetikohtId xsi:nil="true"></ksAmetikohtId>
+                        <oigusAlates xsi:nil="true"></oigusAlates>
+                        <ametikohtId>102328</ametikohtId>
+                        <allyksusId xsi:nil="true"></allyksusId>
+                        <isikukood>38306114712</isikukood>
+                        <ametikohtNimetus>Esindaja</ametikohtNimetus>
+                        <grupp xsi:nil="true"></grupp>
+                        <ametikohtAlates>2009-11-25</ametikohtAlates>
+                        <oigusNimi xsi:nil="true"></oigusNimi>
+                    </oigus>
+                    <oigus>
+                        <ametikohtKuni xsi:nil="true"></ametikohtKuni>
+                        <ksAmetikohtId xsi:nil="true"></ksAmetikohtId>
+                        <oigusAlates xsi:nil="true"></oigusAlates>
+                        <oigusKuni xsi:nil="true"></oigusKuni>
+                        <registrikood>10798430</registrikood>
+                        <ametikohtNimetus>Esindaja</ametikohtNimetus>
+                        <grupp xsi:nil="true"></grupp>
+                        <ametikohtAlates>2009-11-25</ametikohtAlates>
+                        <oigusNimi xsi:nil="true"></oigusNimi>
+                        <ametikohtId>102329</ametikohtId>
+                        <allyksusId xsi:nil="true"></allyksusId>
+                        <isikukood>38306114712</isikukood>
+                    </oigus>
+                    <oigus>
+                        <oigusNimi xsi:nil="true"></oigusNimi>
+                        <grupp xsi:nil="true"></grupp>
+                        <ametikohtAlates>2009-11-25</ametikohtAlates>
+                        <ametikohtNimetus>protsessijuht</ametikohtNimetus>
+                        <isikukood>38306114712</isikukood>
+                        <allyksusId xsi:nil="true"></allyksusId>
+                        <ametikohtId>102327</ametikohtId>
+                        <oigusAlates xsi:nil="true"></oigusAlates>
+                        <ksAmetikohtId xsi:nil="true"></ksAmetikohtId>
+                        <ametikohtKuni xsi:nil="true"></ametikohtKuni>
+                        <registrikood>70006317</registrikood>
+                        <oigusKuni xsi:nil="true"></oigusKuni>
+                    </oigus>
+                    <oigus>
+                        <isikukood>38306114712</isikukood>
+                        <ametikohtId>103686</ametikohtId>
+                        <allyksusId xsi:nil="true"></allyksusId>
+                        <grupp xsi:nil="true"></grupp>
+                        <ametikohtAlates>2010-12-07</ametikohtAlates>
+                        <oigusNimi xsi:nil="true"></oigusNimi>
+                        <ametikohtNimetus>STAT kooskõlastaja</ametikohtNimetus>
+                        <registrikood>70000332</registrikood>
+                        <oigusKuni xsi:nil="true"></oigusKuni>
+                        <ksAmetikohtId xsi:nil="true"></ksAmetikohtId>
+                        <oigusAlates xsi:nil="true"></oigusAlates>
+                        <ametikohtKuni xsi:nil="true"></ametikohtKuni>
+                    </oigus>
+                    <oigus>
+                        <oigusAlates xsi:nil="true"></oigusAlates>
+                        <ksAmetikohtId xsi:nil="true"></ksAmetikohtId>
+                        <ametikohtKuni xsi:nil="true"></ametikohtKuni>
+                        <registrikood>70001946</registrikood>
+                        <oigusKuni xsi:nil="true"></oigusKuni>
+                        <oigusNimi xsi:nil="true"></oigusNimi>
+                        <ametikohtAlates>2010-12-07</ametikohtAlates>
+                        <grupp xsi:nil="true"></grupp>
+                        <ametikohtNimetus>RA kooskõlastaja</ametikohtNimetus>
+                        <isikukood>38306114712</isikukood>
+                        <allyksusId xsi:nil="true"></allyksusId>
+                        <ametikohtId>103687</ametikohtId>
+                    </oigus>
+                    <oigus>
+                        <oigusKuni xsi:nil="true"></oigusKuni>
+                        <registrikood>70004235</registrikood>
+                        <ametikohtKuni xsi:nil="true"></ametikohtKuni>
+                        <oigusAlates xsi:nil="true"></oigusAlates>
+                        <ksAmetikohtId xsi:nil="true"></ksAmetikohtId>
+                        <allyksusId xsi:nil="true"></allyksusId>
+                        <ametikohtId>103688</ametikohtId>
+                        <isikukood>38306114712</isikukood>
+                        <ametikohtNimetus>AKI kooskõlastaja</ametikohtNimetus>
+                        <oigusNimi xsi:nil="true"></oigusNimi>
+                        <ametikohtAlates>2010-12-07</ametikohtAlates>
+                        <grupp xsi:nil="true"></grupp>
+                    </oigus>
+                    <oigus>
+                        <ksAmetikohtId xsi:nil="true"></ksAmetikohtId>
+                        <oigusAlates xsi:nil="true"></oigusAlates>
+                        <ametikohtKuni xsi:nil="true"></ametikohtKuni>
+                        <registrikood>70003158</registrikood>
+                        <oigusKuni xsi:nil="true"></oigusKuni>
+                        <ametikohtAlates>2010-12-07</ametikohtAlates>
+                        <grupp xsi:nil="true"></grupp>
+                        <oigusNimi xsi:nil="true"></oigusNimi>
+                        <ametikohtNimetus>MKM kooskõlastaja</ametikohtNimetus>
+                        <isikukood>38306114712</isikukood>
+                        <ametikohtId>103689</ametikohtId>
+                        <allyksusId xsi:nil="true"></allyksusId>
+                    </oigus>
+                    <oigus>
+                        <isikukood>38306114712</isikukood>
+                        <ametikohtId>103700</ametikohtId>
+                        <allyksusId xsi:nil="true"></allyksusId>
+                        <ametikohtAlates>2010-12-27</ametikohtAlates>
+                        <grupp xsi:nil="true"></grupp>
+                        <oigusNimi xsi:nil="true"></oigusNimi>
+                        <ametikohtNimetus>varblane</ametikohtNimetus>
+                        <registrikood>75000526</registrikood>
+                        <oigusKuni xsi:nil="true"></oigusKuni>
+                        <ksAmetikohtId xsi:nil="true"></ksAmetikohtId>
+                        <oigusAlates xsi:nil="true"></oigusAlates>
+                        <ametikohtKuni xsi:nil="true"></ametikohtKuni>
+                    </oigus>
+                </oigused>
+            </keha>
+        </aar:oigusedResponse>
+    </soap:Body>
+</soap:Envelope>

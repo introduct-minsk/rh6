@@ -1,0 +1,17 @@
+{
+  "name": "veera-styles",
+  "version": "1.0.0",
+  "description": "",
+  "publishConfig":{"registry":"https://nexus.ria.ee/repository/vis3-npm-release-local/"},
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://koodivaramu.eesti.ee/veebiraamistik/veera-stiilid/veera-styles.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {}
+}

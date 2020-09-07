@@ -1,0 +1,19 @@
+# Pytest
+.cache/
+.pytest_cache/
+
+# Pycharm
+.idea/*
+
+# Other
+.DS_Store
+*.pyc
+*.log
+*.html
+*.css
+*.mp4
+**/allure-report/
+**/logs/
+**/video/
+**/public/
+**/venv/

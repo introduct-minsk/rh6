@@ -1,0 +1,281 @@
+pipeline {
+  environment {
+      // add '/' at the end of PRIVATE_REGISTRY and PRIVATE_REGISTRYPush line if custom registry is used
+      PRIVATE_REGISTRY="harbor.riaint.ee/rh6"
+      PUBLIC_REGISTRY="nexus.ria.ee:8500/"
+      FQDN='rh6-component1-01.dev.riaint.ee'
+      IP='10.1.19.35'
+      SLAVE_IMAGE="openjdk:11.0.5-jdk"
+      SLAVE_ARGS = "-v /opt/jenkins/.m2:/root/.m2 -v /var/run/docker.sock:/var/run/docker.sock"
+      SSL_DOCKER_IMAGE="nginx:latest"
+      DOCKER_TAG = "${currentBuild.number}"
+      SYSLOG_HOST = "10.1.19.35"
+      MAVEN_REPO="https://nexus.ria.ee/repository/maven-public"
+
+  }
+  triggers {
+      pollSCM '* * * * *'
+  }
+  agent any
+  stages {
+    stage('Generate client certificates') {
+        when { 
+            anyOf {
+                changeset "backend/**"
+                changeset "infra/db/**"
+                expression { currentBuild.getBuildCauses()[0].shortDescription.startsWith("Started by user") }
+                expression { return currentBuild.number == 1 }
+            }
+        }
+        agent {
+            docker {
+                image "$SLAVE_IMAGE"
+                registryUrl "https://${PUBLIC_REGISTRY}"
+                args "$SLAVE_ARGS"
+            }
+        }
+        steps {
+            sh './infra/pki/generate_client_cert.sh user-service-1 ./infra/pki/ca.crt ./infra/pki/ca.key'
+            sh './infra/pki/generate_client_cert.sh auth-service-1 ./infra/pki/ca.crt ./infra/pki/ca.key'
+            sh './infra/pki/generate_client_cert.sh search-service-1 ./infra/pki/ca.crt ./infra/pki/ca.key'
+            sh './infra/pki/generate_client_cert.sh mailbox-service-1 ./infra/pki/ca.crt ./infra/pki/ca.key'
+            sh './infra/pki/generate_client_cert.sh user-service-2 ./infra/pki/ca.crt ./infra/pki/ca.key'
+            sh './infra/pki/generate_client_cert.sh auth-service-2 ./infra/pki/ca.crt ./infra/pki/ca.key'
+            sh './infra/pki/generate_client_cert.sh search-service-2 ./infra/pki/ca.crt ./infra/pki/ca.key'
+            sh './infra/pki/generate_client_cert.sh mailbox-service-2 ./infra/pki/ca.crt ./infra/pki/ca.key'
+            sh './infra/pki/generate_client_cert.sh database ./infra/pki/ca.crt ./infra/pki/ca.key'
+            sh './infra/pki/generate_client_cert.sh redis ./infra/pki/ca.crt ./infra/pki/ca.key'
+            sh './infra/pki/generate_client_cert.sh elastic ./infra/pki/ca.crt ./infra/pki/ca.key'
+            stash includes: '*.jks', name: 'client-certs'
+            stash includes: '*.crt', name: 'pem-certs'
+            stash includes: '*.key', name: 'pem-keys'
+        }
+    }
+    stage('Maven deploy artifact to Nexus') {
+        when {
+            anyOf {
+                changeset "backend/**"
+                expression { currentBuild.getBuildCauses()[0].shortDescription.startsWith("Started by user") }
+                expression { return currentBuild.number == 1 }
+            }
+        }
+        agent {
+            docker {
+                image "$SLAVE_IMAGE"
+                registryUrl "https://${PUBLIC_REGISTRY}"
+                args "$SLAVE_ARGS"
+            }
+        }
+        steps {
+            dir("${env.WORKSPACE}/backend") {
+                withCredentials([usernamePassword(credentialsId: 'rh6-jenkins-nexus',
+                        usernameVariable: 'USERNAME',
+                        passwordVariable: 'PASSWORD')]) {
+                    withMaven() {
+                        sh './mvnw -Pria -pl utils/mailbox-core,utils/mailbox-core-test,utils/mailbox-security clean deploy -DaltDeploymentRepository=credentials::default::https://nexus.ria.ee/repository/rh6-maven-local/ -DskipTests -Djacoco.skip=true'
+                    }
+                }
+            }
+        }
+    }
+    stage('Build backend files and run tests') {
+        when { 
+            anyOf {
+                changeset "backend/**"
+                expression { currentBuild.getBuildCauses()[0].shortDescription.startsWith("Started by user") }
+                expression { return currentBuild.number == 1 }
+            }
+        }
+        agent {
+            docker {
+                image "$SLAVE_IMAGE"
+                registryUrl "https://${PUBLIC_REGISTRY}"
+                args "$SLAVE_ARGS"
+            }
+        }
+        steps {
+            dir("${env.WORKSPACE}/backend") {
+                sh './mvnw -Pria clean install'
+                junit '**/target/surefire-reports/*.xml'
+                stash includes: '*/target/*.jar', name: 'targetfiles'
+                step([$class: 'JacocoPublisher',
+                      execPattern: '**/target/*.exec',
+                      classPattern: '**/target/classes',
+                      sourcePattern: '**/src/main/java',
+                      exclusionPattern: '**/src/test*,**/ee/riik/xtee/**/*,**/schemaorg_apache_xmlbeans/**/*'
+                ])
+                step([$class: 'DependencyCheckPublisher',
+                    pattern: 'tests/target/dependency-check-report.xml'
+                ])
+            }
+        }
+    }
+    stage('Build backend docker images') {
+        agent { label 'master' }
+        when { 
+            anyOf {
+                changeset "backend/**"
+                expression { currentBuild.getBuildCauses()[0].shortDescription.startsWith("Started by user") }
+                expression { return currentBuild.number == 1 }
+            }
+        }
+        steps {
+
+            script {
+                dir("${env.WORKSPACE}/backend") {
+                    unstash 'targetfiles'
+                    unstash 'client-certs'
+                    userServiceDockerImage = docker.build("user-service:${DOCKER_TAG}", "--build-arg JAR_FILE=user-service/target/user-service.jar .")
+                    authServiceDockerImage = docker.build("auth-service:${DOCKER_TAG}", "--build-arg JAR_FILE=auth-service/target/auth-service.jar .")
+                    searchServiceDockerImage = docker.build("search-service:${DOCKER_TAG}", "--build-arg JAR_FILE=search-service/target/search-service.jar .")
+                    mailboxServiceDockerImage = docker.build("mailbox-service:${DOCKER_TAG}", "--build-arg JAR_FILE=mailbox-service/target/mailbox-service.jar .")
+                }
+            }
+        }
+    }
+    stage ('Push backend docker images to harbor') {
+        agent { label 'master' }
+        when { 
+            anyOf {
+                changeset "backend/**"
+                expression { currentBuild.getBuildCauses()[0].shortDescription.startsWith("Started by user") }
+                expression { return currentBuild.number == 1 }
+            }
+        }
+        steps {
+            script {
+                docker.withRegistry('https://${PRIVATE_REGISTRY}', 'jenkins-harbor') {
+                    userServiceDockerImage.push()
+                    authServiceDockerImage.push()
+                    searchServiceDockerImage.push()
+                    mailboxServiceDockerImage.push()
+                }
+            }
+            sh 'docker rmi -f `docker images | grep service | awk \'{print $3}\'`'
+        }
+    }
+    stage('Build database image') {
+        agent { label 'master' }
+        when { 
+            anyOf {
+                changeset "backend/**"
+                expression { currentBuild.getBuildCauses()[0].shortDescription.startsWith("Started by user") }
+                expression { return currentBuild.number == 1 }
+            }
+        }
+        steps {
+            script {
+                unstash 'pem-certs'
+                unstash 'pem-keys'
+                databaseImage = docker.build("postgres_database", "-f infra/db/Dockerfile --build-arg CA_FILE=./infra/pki/ca.crt  --build-arg CERT_FILE=./database-client.crt --build-arg KEY_FILE=./database-client.key .")
+            }
+        }
+    }
+    stage ('Push database docker image to harbor') {
+        agent { label 'master' }
+        when { 
+            anyOf {
+                changeset "backend/**"
+                expression { currentBuild.getBuildCauses()[0].shortDescription.startsWith("Started by user") }
+                expression { return currentBuild.number == 1 }
+            }
+        }
+        steps {
+            script {
+                docker.withRegistry('https://${PRIVATE_REGISTRY}', 'jenkins-harbor') {
+                    databaseImage.push()
+                }
+            }
+            sh 'docker rmi -f `docker images | grep postgres_database | awk \'{print $3}\'`'
+        }
+    }
+
+    stage('Deploy to Host') {
+       agent { label 'master' }
+       when { 
+           anyOf {
+               changeset "backend/**"
+               expression { currentBuild.getBuildCauses()[0].shortDescription.startsWith("Started by user") }
+               expression { return currentBuild.number == 1 }
+           }
+       }
+       steps {
+           script {
+               withCredentials([
+                       sshUserPrivateKey(credentialsId: "riajenk-ssh", usernameVariable: 'username', keyFileVariable: 'keyfile'),
+                       usernamePassword(credentialsId: 'jenkins-harbor', usernameVariable: 'dockerUserName', passwordVariable: 'dockerPassword')]){
+                   def remote = [:]
+                   remote.name = "${FQDN}"
+                   remote.host = "${IP}"
+                   remote.user = "${username}"
+                   remote.identityFile = "${keyfile}"
+                   remote.allowAnyHosts = true
+
+                   //put client certificates to destination host
+                   unstash 'pem-certs'
+                   unstash 'pem-keys'
+                   unstash 'client-certs'
+                   sshCommand(remote: remote, command: "ls /opt/riajenk/client_certs || rm -rf /opt/riajenk/client_certs", sudo: true)
+                   sshCommand(remote: remote, command: "mkdir -p /opt/riajenk/client_certs", sudo: false)
+                   sshPut remote: remote, from: 'user-service-1.jks', into: '/opt/riajenk/client_certs'
+                   sshPut remote: remote, from: 'auth-service-1.jks', into: '/opt/riajenk/client_certs'
+                   sshPut remote: remote, from: 'search-service-1.jks', into: '/opt/riajenk/client_certs'
+                   sshPut remote: remote, from: 'mailbox-service-1.jks', into: '/opt/riajenk/client_certs'
+                   sshPut remote: remote, from: 'user-service-2.jks', into: '/opt/riajenk/client_certs'
+                   sshPut remote: remote, from: 'auth-service-2.jks', into: '/opt/riajenk/client_certs'
+                   sshPut remote: remote, from: 'search-service-2.jks', into: '/opt/riajenk/client_certs'
+                   sshPut remote: remote, from: 'mailbox-service-2.jks', into: '/opt/riajenk/client_certs'
+
+                   //put redis certificates to destination host
+                   sshCommand(remote: remote, command: "ls /opt/riajenk/redis_certs || rm -rf /opt/riajenk/redis_certs", sudo: true)
+                   sshCommand(remote: remote, command: "mkdir -p /opt/riajenk/redis_certs", sudo: false)
+                   sshPut remote: remote, from: 'redis-client.crt', into: '/opt/riajenk/redis_certs/'
+                   sshPut remote: remote, from: 'redis-client.key', into: '/opt/riajenk/redis_certs/'
+                   sshPut remote: remote, from: 'infra/pki/ca.crt', into: '/opt/riajenk/redis_certs/'
+
+                   //put elastic certificates to destination host
+                   sshCommand(remote: remote, command: "ls /opt/riajenk/elastic_certs || rm -rf /opt/riajenk/elastic_certs", sudo: true)
+                   sshCommand(remote: remote, command: "mkdir -p /opt/riajenk/elastic_certs", sudo: false)
+                   sshPut remote: remote, from: 'elastic-client.crt', into: '/opt/riajenk/elastic_certs/'
+                   sshPut remote: remote, from: 'elastic-client.key', into: '/opt/riajenk/elastic_certs/'
+                   sshPut remote: remote, from: 'infra/pki/ca.crt', into: '/opt/riajenk/elastic_certs/'
+
+                   //put compose and swagger files to the destination host
+                   sshPut remote: remote, from: 'backend/docker-compose.yml', into: '/opt/riajenk/docker-compose-backend.yml'
+                   sshPut remote: remote, from: 'backend/api', into: '/opt/riajenk/'
+                   sshCommand(remote: remote, command: "ls /opt/riajenk/config || rm -rf /opt/riajenk/config", sudo: true)
+                   sshCommand(remote: remote, command: "mkdir -p /opt/riajenk/config", sudo: false)
+                   sshPut remote: remote, from: 'backend/config/909.p12d', into: '/opt/riajenk/config/'
+                   sshPut remote: remote, from: 'backend/config/hadoop.env', into: '/opt/riajenk/config/'
+
+                   //configure rsyslog that will send logs to remote server
+                   sshPut remote: remote, from: 'infra/rsyslog-services.conf', into: '/opt/riajenk/'
+                   sshCommand(remote: remote, command: "sudo bash -c \"mv /opt/riajenk/rsyslog-services.conf /etc/rsyslog.d/\"", sudo: false)
+                   //install rsyslog
+                   sshCommand(remote: remote, command: "sudo dpkg -S rsyslog || sudo apt-get install -yf rsyslog", sudo: true)
+                   sshCommand(remote: remote, command: "sudo dpkg -S rsyslog-relp || sudo apt-get install -yf rsyslog-relp", sudo: true)
+                   sshCommand(remote: remote, command: "sudo systemctl restart rsyslog.service", sudo: true)
+                   //install docker and docker-compose
+                   sshCommand(remote: remote, command: "sudo dpkg -S docker.io || sudo apt-get install -yf docker.io", sudo: true)
+                   sshCommand(remote: remote, command: "ls /usr/local/bin/docker-compose || sudo curl -L \"https://nexus.ria.ee/repository/raw-public/docker/compose/releases/download/1.25.5/docker-compose-\$(uname -s)-\$(uname -m)\" -o /usr/local/bin/docker-compose", sudo: true)
+                   sshCommand(remote: remote, command: "chmod +x /usr/local/bin/docker-compose", sudo: true)
+                   sshCommand(remote: remote, command: "docker login ${PRIVATE_REGISTRY} -u '${dockerUserName}' -p '${dockerPassword}'", sudo: true)
+                   sshCommand(remote: remote, command: "PRIVATE_REGISTRY='${PRIVATE_REGISTRY}/' PUBLIC_REGISTRY=${PUBLIC_REGISTRY} DOCKER_TAG=${DOCKER_TAG} docker-compose -f /opt/riajenk/docker-compose-backend.yml pull postgres", sudo: true)
+                   sshCommand(remote: remote, command: "PRIVATE_REGISTRY='${PRIVATE_REGISTRY}/' PUBLIC_REGISTRY=${PUBLIC_REGISTRY} DOCKER_TAG=${DOCKER_TAG} docker-compose -f /opt/riajenk/docker-compose-backend.yml pull user-service-1", sudo: true)
+                   sshCommand(remote: remote, command: "PRIVATE_REGISTRY='${PRIVATE_REGISTRY}/' PUBLIC_REGISTRY=${PUBLIC_REGISTRY} DOCKER_TAG=${DOCKER_TAG} docker-compose -f /opt/riajenk/docker-compose-backend.yml pull mailbox-service-1", sudo: true)
+                   sshCommand(remote: remote, command: "PRIVATE_REGISTRY='${PRIVATE_REGISTRY}/' PUBLIC_REGISTRY=${PUBLIC_REGISTRY} DOCKER_TAG=${DOCKER_TAG} docker-compose -f /opt/riajenk/docker-compose-backend.yml pull search-service-1", sudo: true)
+                   sshCommand(remote: remote, command: "PRIVATE_REGISTRY='${PRIVATE_REGISTRY}/' PUBLIC_REGISTRY=${PUBLIC_REGISTRY} DOCKER_TAG=${DOCKER_TAG} docker-compose -f /opt/riajenk/docker-compose-backend.yml pull auth-service-1", sudo: true)
+                   sshCommand(remote: remote, command: "PRIVATE_REGISTRY='${PRIVATE_REGISTRY}/' PUBLIC_REGISTRY=${PUBLIC_REGISTRY} DOCKER_TAG=${DOCKER_TAG} docker-compose -p rh6_deploy -f /opt/riajenk/docker-compose-backend.yml up -d", sudo: true)
+                   sshCommand(remote: remote, command: "docker exec rh6_lb sh -c 'nginx -s reload' || true", sudo: true)
+                   sshCommand(remote: remote, command: "sudo docker rmi -f `sudo docker images | grep service | awk \'{print \$3}\'` || true", sudo: true)
+               }
+           }
+       }
+    }
+  }
+  post {
+    always {
+      cleanWs()
+    }
+  }
+}

@@ -1,0 +1,101 @@
+Infosystem: Infosüsteem
+
+Information System Authority: Riigi infosüsteemi amet
+Information system: Infosüsteem
+
+roleSelectPrompt: Palun valige esindusõigus, mida soovite kasutada.
+
+Hide menu: Kitsendan menüü
+menu: menüü
+
+Lang: Keel
+User: Minu roll
+Log out: Logi välja
+Show by: Kuvan korraga
+
+Mailbox: Postkast
+Inbox: Sisendkaust
+Outbox: Väljundkaust
+New message: Uus sõnum
+No data: Andmed puuduvad
+
+searchPlaceholder: Otsi siit
+Search results: Otsingu tulemused
+
+# in regards to a message
+From: Kellelt
+To: Kellele
+Subject: Teema
+No Subject: Teema puudub
+Text: Tekst
+11-digit national code: 11-kohaline isikukood
+Send message: Saada sõnum
+Send: Saada
+Sign message: Allkirjasta sõnum
+See message: Vaata sõnumit
+readReceiptShort: Kasutaja {id} on Teie sõnumit lugenud
+readReceiptFull: Kasutaja {nameFirst} {nameLast} on Teie sõnumit “{subject}” lugenud {timestamp}
+Error message: Veateade
+Empty receiver code: Tühi isikukood või registrikood
+Code: Kood
+
+See new messages: Vaadake uusi sõnumeid
+You have new messages: Teil on uusi sõnumeid
+
+Problem: Probleem
+Error: Viga
+serverError: Serveriga ühenduse loomisel tekkis tõrge.
+signedBy: Alla kirjutanud
+ID: kood
+digidocLink: DigiDoc
+signWithIdCard: Allkirjasta ID-kaardiga
+Signed with digital ID: Allkirjastatud digitaalselt
+signedByAt: ''
+signatureInvalid: Digitaalne allkiri ei ole kehtiv
+validationServiceDown: Digitaalse allkirja kehtivust ei ole võimalik valideerida. (Valideerimisteenus on maas)
+Attach files: Lisage manuseid
+numAttachmentsLimitReachedError: Vabandust, maksimaalselt on võimalik manustada 25 faili.
+
+# button
+Back: Tagasi
+Cancel: Tühista
+
+# footer
+help: vajate abi?
+Write to us: Kirjutage meile
+Contacts of the authorities: Asutuste kontaktid
+
+Follow us on Facebook: Jälgige meid Facebookis
+State portal help: Riigiportaali abi
+
+communication: suhtlus
+Write a feedback: Annan tagasisidet
+
+fileSelector:
+  line1: Lohistage
+  line2: fail siia või
+  choose: Valige
+  multipleTip: Mitme faili valimiseks hoidke all nuppu CTRL/CMND
+
+Delete: Kustuta
+Change: Muuda
+Download: Laadi alla
+
+uploadStatuses:
+  uploaded: Üles laaditud
+  uploading: Üleslaadimine
+  waiting: Ootamine
+  deleting: Kustutamine
+  error: Tundmatu viga
+  tooLarge: Fail on liiga suur. Manustatava faili maksimaalne maht on 50 Mb.
+Over the limit: Üle piiri
+
+onBehalfOf: '{who} esindajana'
+receiverPlaceholder: Isikukood või registrikood, ainult numbrid
+
+errors:
+  hwcrypto:
+    no_implementation: DigiDoci pistikprogrammi pole installitud.
+  api:
+    aar_oigused_service_unavailable: Teie esindusõiguste hankimisel AAR registrist on esinenud tõrge, seega Teie esindusõigused on piiratud vaid Teie enda esindusõigusega.
+    rr414_service_error_10027: Teie isikukoodi ei leitud rahvastikuregistrist. Teil ei ole luba Postkasti rakendusega jätkata.

@@ -1,0 +1,25 @@
+version: '2.1'
+
+services:
+  lb: 
+    image: ${PUBLIC_REGISTRY}nginx:alpine
+    container_name: rh6_lb
+    volumes:
+      - ./lb_config/nginx-front.conf:/etc/nginx/nginx.conf
+      - ./lb_config/lb.conf:/etc/nginx/conf.d/lb.conf
+      - ./lb_config/cert.crt:/etc/nginx/pki/cert.crt
+      - ./lb_config/cert.key:/etc/nginx/pki/cert.key
+      - ./lb_config/ca.crt:/etc/nginx/pki/ca.crt
+    ports:
+      - 443:443
+      - 8443:8443
+      - 9443:9443
+    restart: always
+    networks:
+      mailbox-network:
+        aliases:
+          - lb
+
+networks:
+  mailbox-network:
+    name: mailbox-network

@@ -1,0 +1,75 @@
+{
+  "name": "front",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "serve": "vue-cli-service serve",
+    "build": "vue-cli-service build",
+    "test:unit": "vue-cli-service test:unit",
+    "test:unit:watch:mac": "npm run test:unit; fswatch -o -r tests/unit src | xargs -n1 -I{} npm run test:unit",
+    "lint": "vue-cli-service lint --no-fix",
+    "lint:fix": "vue-cli-service lint --fix"
+  },
+  "dependencies": {
+    "axios": "^0.19.2",
+    "bootstrap": "^4.5.0",
+    "bootstrap-vue": "^2.15.0",
+    "lodash": "^4.17.15",
+    "moment": "^2.26.0",
+    "veera-styles": "file:veera-styles",
+    "veera-vue": "file:veera-vue",
+    "vue": "^2.6.11",
+    "vue-i18n": "^8.18.2",
+    "vue-router": "^3.3.2",
+    "vue-the-mask": "^0.11.1",
+    "vuex": "^3.4.0",
+    "vuex-map-fields": "^1.4.0"
+  },
+  "devDependencies": {
+    "@types/jest": "^24.0.19",
+    "@types/lodash": "^4.14.155",
+    "@types/moment-timezone": "^0.5.13",
+    "@types/webpack": "^4.41.17",
+    "@typescript-eslint/eslint-plugin": "^2.34.0",
+    "@typescript-eslint/parser": "^2.34.0",
+    "@vue/cli-plugin-babel": "~4.4.1",
+    "@vue/cli-plugin-eslint": "~4.4.1",
+    "@vue/cli-plugin-router": "~4.4.1",
+    "@vue/cli-plugin-typescript": "~4.4.1",
+    "@vue/cli-plugin-unit-jest": "~4.4.1",
+    "@vue/cli-plugin-vuex": "~4.4.1",
+    "@vue/cli-service": "~4.4.1",
+    "@vue/eslint-config-standard": "^5.1.0",
+    "@vue/eslint-config-typescript": "^5.0.1",
+    "@vue/test-utils": "1.0.0-beta.31",
+    "eslint": "^6.7.2",
+    "eslint-plugin-import": "^2.21.2",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-promise": "^4.2.1",
+    "eslint-plugin-standard": "^4.0.0",
+    "eslint-plugin-vue": "^6.1.2",
+    "flush-promises": "^1.0.2",
+    "json-loader": "^0.5.7",
+    "lint-staged": "^9.5.0",
+    "moment-timezone": "^0.5.31",
+    "popper.js": "^1.16.0",
+    "portal-vue": "^2.1.6",
+    "sass": "^1.26.8",
+    "sass-loader": "^8.0.2",
+    "socks-proxy-agent": "^5.0.0",
+    "typescript": "~3.9.3",
+    "vue-cli-plugin-bootstrap-vue": "~0.6.0",
+    "vue-cli-plugin-i18n": "~1.0.1",
+    "vue-template-compiler": "^2.6.11",
+    "yaml-loader": "^0.6.0"
+  },
+  "gitHooks": {
+    "pre-commit": "lint-staged"
+  },
+  "lint-staged": {
+    "*.{js,jsx,vue,ts,tsx}": [
+      "vue-cli-service lint",
+      "git add"
+    ]
+  }
+}

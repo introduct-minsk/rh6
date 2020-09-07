@@ -1,0 +1,17 @@
+// This file should be included before bootstrap
+
+@import "./variables.scss";
+
+// set the vars
+$input-box-shadow: none;
+$input-focus-box-shadow: none;
+$form-feedback-valid-color: map-get($colors, sea-green-10);
+$form-feedback-invalid-color: map-get($colors, jasper-10);
+$input-disabled-bg: map-get($colors, black-coral-0);
+
+// bridge Veera vars to bootstrap
+$link-color: $color-link;
+$h1-font-size: $o-font-size-xxl;
+$h2-font-size: $o-font-size-xl;
+$h3-font-size: $o-font-size-lg;
+$h4-font-size: $o-font-size-base;

@@ -1,0 +1,33 @@
+/*
+  The purpose of this file is simply not to import veera’s "tools/color",
+  which doesn’t work in IE11.
+  Otherwise it’s a ~veera-styles/scss/main.scss copy.
+*/
+
+// Settings
+@import "~veera-styles/scss/settings/colors";
+@import "~veera-styles/scss/settings/variables";
+
+// Tools
+// @import "tools/color";  // <— don’t import
+
+// Bootstrap mixins & grid
+//@import "bootstrap/scss/mixins";
+//@import "bootstrap/scss/bootstrap-grid";
+
+// Generic
+@import "~veera-styles/scss/generic/reset";
+@import "~veera-styles/scss/generic/page";
+@import "~veera-styles/scss/generic/typography";
+
+// Components
+@import "~veera-styles/scss/components/btn";
+@import "~veera-styles/scss/components/radio";
+@import "~veera-styles/scss/components/checkbox";
+@import "~veera-styles/scss/components/textfield";
+@import "~veera-styles/scss/components/dropdown";
+@import "~veera-styles/scss/components/textarea";
+@import "~veera-styles/scss/components/snackbar";
+@import "~veera-styles/scss/components/cards";
+@import "~veera-styles/scss/components/table";
+@import "~veera-styles/scss/components/navigation/navigation";

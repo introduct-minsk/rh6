@@ -1,0 +1,306 @@
+<?xml version="1.0" encoding="UTF-8"?><soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:aar="http://producers.aar.xtee.riik.ee/producer/aar" xmlns:id="http://x-road.eu/xsd/identifiers" xmlns:xrd="http://x-road.eu/xsd/xroad.xsd" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <soap:Header>
+        <xrd:protocolVersion>4.0</xrd:protocolVersion>
+
+        <xrd:userId>45307316010</xrd:userId>
+
+        <xrd:id>1728177059470006317-1490938549</xrd:id>
+        <xrd:requestHash algorithmId="http://www.w3.org/2001/04/xmlenc#sha512">Dkq7Y3WGkv1rqhSeZ3xh9vm2AskId7K4ksqPpvSpXuXRvrfIkb4Kas1/utlJlzgklCYDHtBfm+FNngbwk0sWqw==</xrd:requestHash>
+
+        <xrd:client id:objectType="SUBSYSTEM">
+            <id:xRoadInstance>ee-dev</id:xRoadInstance>
+
+            <id:memberCode>70006317</id:memberCode>
+
+            <id:subsystemCode>riigiportaal-citizen</id:subsystemCode>
+
+            <id:memberClass>GOV</id:memberClass>
+        </xrd:client>
+
+        <xrd:service id:objectType="SERVICE">
+            <id:serviceVersion>v1</id:serviceVersion>
+
+            <id:memberCode>70006317</id:memberCode>
+
+            <id:serviceCode>oigused</id:serviceCode>
+
+            <id:subsystemCode>aar</id:subsystemCode>
+
+            <id:memberClass>GOV</id:memberClass>
+
+            <id:xRoadInstance>ee-dev</id:xRoadInstance>
+        </xrd:service>
+    </soap:Header>
+
+    <soap:Body>
+        <aar:oigusedResponse>
+            <paring>
+                <isikukood>51001091072</isikukood>
+            </paring>
+
+            <keha>
+                <oigused>
+                    <oigus>
+                        <oigusNimi>TPIS.FINANCIST</oigusNimi>
+
+                        <oigusKuni xsi:nil="true"/>
+
+                        <isikukood>51001091072</isikukood>
+
+                        <ametikohtAlates xsi:nil="true"/>
+
+                        <ametikohtNimetus xsi:nil="true"/>
+
+                        <ksAmetikohtId xsi:nil="true"/>
+
+                        <oigusAlates xsi:nil="true"/>
+
+                        <ametikohtKuni xsi:nil="true"/>
+
+                        <allyksusId xsi:nil="true"/>
+
+                        <registrikood>70006317</registrikood>
+
+                        <grupp xsi:nil="true"/>
+
+                        <ametikohtId>100114</ametikohtId>
+                    </oigus>
+
+                    <oigus>
+                        <ametikohtId>100114</ametikohtId>
+
+                        <grupp xsi:nil="true"/>
+
+                        <registrikood>70006317</registrikood>
+
+                        <allyksusId xsi:nil="true"/>
+
+                        <ametikohtKuni xsi:nil="true"/>
+
+                        <oigusAlates xsi:nil="true"/>
+
+                        <ksAmetikohtId xsi:nil="true"/>
+
+                        <ametikohtNimetus xsi:nil="true"/>
+
+                        <ametikohtAlates xsi:nil="true"/>
+
+                        <isikukood>51001091072</isikukood>
+
+                        <oigusNimi>TPIS.USER</oigusNimi>
+
+                        <oigusKuni xsi:nil="true"/>
+                    </oigus>
+
+                    <oigus>
+                        <registrikood>70006317</registrikood>
+
+                        <grupp xsi:nil="true"/>
+
+                        <ametikohtId>100114</ametikohtId>
+
+                        <allyksusId xsi:nil="true"/>
+
+                        <ametikohtKuni xsi:nil="true"/>
+
+                        <ksAmetikohtId xsi:nil="true"/>
+
+                        <ametikohtNimetus xsi:nil="true"/>
+
+                        <ametikohtAlates xsi:nil="true"/>
+
+                        <oigusAlates xsi:nil="true"/>
+
+                        <isikukood>51001091072</isikukood>
+
+                        <oigusNimi>FORM.DIAGRAMMID_W</oigusNimi>
+
+                        <oigusKuni xsi:nil="true"/>
+                    </oigus>
+
+                    <oigus>
+                        <ametikohtKuni xsi:nil="true"/>
+
+                        <allyksusId xsi:nil="true"/>
+
+                        <grupp xsi:nil="true"/>
+
+                        <registrikood>11430169</registrikood>
+
+                        <ametikohtId>107083</ametikohtId>
+
+                        <oigusNimi>GENERAL.ARENDUS</oigusNimi>
+
+                        <oigusKuni xsi:nil="true"/>
+
+                        <isikukood>51001091072</isikukood>
+
+                        <ametikohtAlates xsi:nil="true"/>
+
+                        <ametikohtNimetus xsi:nil="true"/>
+
+                        <ksAmetikohtId xsi:nil="true"/>
+
+                        <oigusAlates>2014-01-10</oigusAlates>
+                    </oigus>
+
+                    <oigus>
+                        <grupp xsi:nil="true"/>
+
+                        <registrikood>11430169</registrikood>
+
+                        <ametikohtId>107083</ametikohtId>
+
+                        <ametikohtKuni xsi:nil="true"/>
+
+                        <allyksusId xsi:nil="true"/>
+
+                        <ametikohtNimetus xsi:nil="true"/>
+
+                        <ametikohtAlates xsi:nil="true"/>
+
+                        <ksAmetikohtId xsi:nil="true"/>
+
+                        <oigusAlates>2014-01-10</oigusAlates>
+
+                        <oigusNimi>ASUTUS.ASUTUS_ADMIN</oigusNimi>
+
+                        <oigusKuni xsi:nil="true"/>
+
+                        <isikukood>51001091072</isikukood>
+                    </oigus>
+
+                    <oigus>
+                        <ametikohtKuni xsi:nil="true"/>
+
+                        <allyksusId xsi:nil="true"/>
+
+                        <ametikohtId>107083</ametikohtId>
+
+                        <grupp xsi:nil="true"/>
+
+                        <registrikood>11430169</registrikood>
+
+                        <oigusNimi>PORTAAL.TOIMETAJA</oigusNimi>
+
+                        <oigusKuni xsi:nil="true"/>
+
+                        <isikukood>51001091072</isikukood>
+
+                        <oigusAlates>2014-01-10</oigusAlates>
+
+                        <ametikohtAlates xsi:nil="true"/>
+
+                        <ametikohtNimetus xsi:nil="true"/>
+
+                        <ksAmetikohtId xsi:nil="true"/>
+                    </oigus>
+
+                    <oigus>
+                        <ametikohtNimetus xsi:nil="true"/>
+
+                        <ametikohtAlates xsi:nil="true"/>
+
+                        <ksAmetikohtId xsi:nil="true"/>
+
+                        <oigusAlates>2014-01-10</oigusAlates>
+
+                        <oigusNimi>XTEEPORTAL.TEENUS:adit-earved:earve_kompleks:v1</oigusNimi>
+
+                        <oigusKuni xsi:nil="true"/>
+
+                        <isikukood>51001091072</isikukood>
+
+                        <registrikood>11430169</registrikood>
+
+                        <grupp xsi:nil="true"/>
+
+                        <ametikohtId>107083</ametikohtId>
+
+                        <ametikohtKuni xsi:nil="true"/>
+
+                        <allyksusId xsi:nil="true"/>
+                    </oigus>
+
+                    <oigus>
+                        <ametikohtNimetus xsi:nil="true"/>
+
+                        <ametikohtAlates xsi:nil="true"/>
+
+                        <ksAmetikohtId xsi:nil="true"/>
+
+                        <oigusAlates>2014-01-20</oigusAlates>
+
+                        <oigusNimi>XTEEPORTAL.TEENUS:emta-eteenus:Noudedreg:v1</oigusNimi>
+
+                        <oigusKuni xsi:nil="true"/>
+
+                        <isikukood>51001091072</isikukood>
+
+                        <registrikood>11430169</registrikood>
+
+                        <grupp xsi:nil="true"/>
+
+                        <ametikohtId>107083</ametikohtId>
+
+                        <ametikohtKuni xsi:nil="true"/>
+
+                        <allyksusId xsi:nil="true"/>
+                    </oigus>
+
+                    <oigus>
+                        <ametikohtKuni xsi:nil="true"/>
+
+                        <allyksusId xsi:nil="true"/>
+
+                        <ametikohtId>100114</ametikohtId>
+
+                        <grupp xsi:nil="true"/>
+
+                        <registrikood>70006317</registrikood>
+
+                        <oigusKuni xsi:nil="true"/>
+
+                        <oigusNimi xsi:nil="true"/>
+
+                        <isikukood>51001091072</isikukood>
+
+                        <oigusAlates xsi:nil="true"/>
+
+                        <ametikohtNimetus>testametikoht 1</ametikohtNimetus>
+
+                        <ametikohtAlates xsi:nil="true"/>
+
+                        <ksAmetikohtId xsi:nil="true"/>
+                    </oigus>
+
+                    <oigus>
+                        <grupp xsi:nil="true"/>
+
+                        <registrikood>11430169</registrikood>
+
+                        <ametikohtId>107083</ametikohtId>
+
+                        <allyksusId xsi:nil="true"/>
+
+                        <ametikohtKuni xsi:nil="true"/>
+
+                        <ksAmetikohtId xsi:nil="true"/>
+
+                        <ametikohtAlates>2014-01-10</ametikohtAlates>
+
+                        <ametikohtNimetus>Arendaja</ametikohtNimetus>
+
+                        <oigusAlates xsi:nil="true"/>
+
+                        <isikukood>51001091072</isikukood>
+
+                        <oigusNimi xsi:nil="true"/>
+
+                        <oigusKuni xsi:nil="true"/>
+                    </oigus>
+                </oigused>
+            </keha>
+        </aar:oigusedResponse>
+    </soap:Body>
+</soap:Envelope>

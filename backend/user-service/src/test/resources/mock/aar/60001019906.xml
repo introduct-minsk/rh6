@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?><soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:aar="http://producers.aar.xtee.riik.ee/producer/aar" xmlns:id="http://x-road.eu/xsd/identifiers" xmlns:xrd="http://x-road.eu/xsd/xroad.xsd" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <soap:Header>
+        <xrd:protocolVersion>4.0</xrd:protocolVersion>
+
+        <xrd:client id:objectType="SUBSYSTEM">
+            <id:memberClass>GOV</id:memberClass>
+
+            <id:subsystemCode>riigiportaal-citizen</id:subsystemCode>
+
+            <id:xRoadInstance>ee-dev</id:xRoadInstance>
+
+            <id:memberCode>70006317</id:memberCode>
+        </xrd:client>
+
+        <xrd:id>172810c4d85700063171943310473</xrd:id>
+        <xrd:requestHash algorithmId="http://www.w3.org/2001/04/xmlenc#sha512">Pox8DTlsGEY9+1JKWVS7eOFs8B/XfTv5NgKXSBiA/6txd1JyjmoCluJozp2OUZaBEm3+A/SvMMxSbukShCoXdQ==</xrd:requestHash>
+
+        <xrd:userId>45307316010</xrd:userId>
+
+        <xrd:service id:objectType="SERVICE">
+            <id:serviceVersion>v1</id:serviceVersion>
+
+            <id:memberClass>GOV</id:memberClass>
+
+            <id:xRoadInstance>ee-dev</id:xRoadInstance>
+
+            <id:subsystemCode>aar</id:subsystemCode>
+
+            <id:serviceCode>oigused</id:serviceCode>
+
+            <id:memberCode>70006317</id:memberCode>
+        </xrd:service>
+    </soap:Header>
+
+    <soap:Body>
+        <aar:oigusedResponse>
+            <paring>
+                <isikukood>60001019906</isikukood>
+            </paring>
+
+            <keha>
+                <oigused xsi:nil="true"/>
+            </keha>
+        </aar:oigusedResponse>
+    </soap:Body>
+</soap:Envelope>

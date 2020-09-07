@@ -1,0 +1,26 @@
+.b-pagination.veera {
+  .page-link {
+    border: none;
+    &[role="menuitemradio"] {
+      width: 2em;
+      height: 2em;
+      color: getColor(black-coral-10);
+    }
+    &[role="menuitem"] {
+      color: getColor(sapphire-blue-10);
+    }
+  }
+  .active {
+    .page-link {
+      &[role="menuitemradio"] {
+        color: getColor(white);
+        background-color: getColor(sapphire-blue-10);
+      }
+    }
+  }
+  .disabled {
+    .page-link[role="menuitem"] {
+      color: getColor(black-coral-10);
+    }
+  }
+}

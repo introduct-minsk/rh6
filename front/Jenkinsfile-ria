@@ -1,0 +1,138 @@
+pipeline {
+    environment {
+        PRIVATE_REGISTRY="harbor.riaint.ee/rh6"
+        PUBLIC_REGISTRY="https://nexus.ria.ee:8500/"
+        FQDN='rh6-component1-01.dev.riaint.ee'
+        IP='10.1.19.35'
+        DOCKER_IMAGE = "mailbox-frontend"
+        DOCKER_TAG = "${currentBuild.number}"
+        NPM_REGISTRY = "https://nexus.ria.ee/repository/npm-public/"
+
+        SLAVE_IMAGE="node:12-stretch"
+        SLAVE_ARGS="--network host -v /tmp/npm_cache:/root/npm_cache -v /var/run/docker.sock:/var/run/docker.sock"
+    }
+    triggers {
+        pollSCM '* * * * *'
+    }
+    agent any
+    stages {
+        stage('Build frontend image') {
+            when { 
+                anyOf {
+                    changeset "front/**"
+                    expression { currentBuild.getBuildCauses()[0].shortDescription.startsWith("Started by user") }
+                    expression { return currentBuild.number == 1 }
+                }
+            }
+            agent {
+                docker {
+                    image "$SLAVE_IMAGE"
+                    registryUrl "$PUBLIC_REGISTRY"
+                    args "$SLAVE_ARGS"
+                }
+            }
+            steps {
+                dir("${env.WORKSPACE}/front") {
+                    sh 'export HOME=$(pwd)'
+                    sh 'mkdir -p /tmp/npm_cache'
+                    sh 'export NPM_CONFIG_REGISTRY="${NPM_REGISTRY}"'
+                    sh 'npm install --cache /tmp/npm_cache'
+                    sh 'npm run build'
+                    stash includes: 'dist/**/*', name: 'builtFiles'
+                    sh 'rm -rf node_modules'
+                }
+            }
+        }
+        stage('OWASP Dependency-Check Vulnerabilities') {
+            agent { label 'master' }
+            when { 
+                anyOf {
+                    changeset "front/**"
+                    expression { currentBuild.getBuildCauses()[0].shortDescription.startsWith("Started by user") }
+                    expression { return currentBuild.number == 1 }
+                }
+            }
+            steps {
+                dir("${env.WORKSPACE}/front") {
+                    //See the additional arguments options https://jeremylong.github.io/DependencyCheck/dependency-check-cli/arguments.html
+                    dependencyCheck additionalArguments: '--cveValidForHours 24', odcInstallation: 'default'
+                    // show result on trend chars and builds
+                    dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
+                }
+            }
+        }
+        stage('Build docker images') {
+            when { 
+                anyOf {
+                    changeset "front/**"
+                    expression { currentBuild.getBuildCauses()[0].shortDescription.startsWith("Started by user") }
+                    expression { return currentBuild.number == 1 }
+                }
+            }
+            agent { label 'master' }
+            steps {
+                script {
+                    dir("${env.WORKSPACE}/front") {
+                        unstash 'builtFiles'
+                        frontendDockerImage = docker.build("${DOCKER_IMAGE}:${DOCKER_TAG}", "--build-arg BUILT_FILES=./dist .")
+                    }
+                }
+            }
+        }
+        stage ('Push frontend docker image to harbor') {
+            when { 
+                anyOf {
+                    changeset "front/**"
+                    expression { currentBuild.getBuildCauses()[0].shortDescription.startsWith("Started by user") }
+                    expression { return currentBuild.number == 1 }
+                }
+            }
+            agent { label 'master' }
+            steps {
+                script {
+                    docker.withRegistry('https://${PRIVATE_REGISTRY}', 'jenkins-harbor') {
+                      frontendDockerImage.push()
+                    }
+                }
+                sh 'docker rmi -f `docker images | grep frontend | awk \'{print $3}\'`'
+            }
+        }
+        stage('Deploy frontend to host') {
+            when { 
+                anyOf {
+                    changeset "front/**"
+                    expression { currentBuild.getBuildCauses()[0].shortDescription.startsWith("Started by user") }
+                    expression { return currentBuild.number == 1 }
+                }
+            }
+            agent { label 'master' }
+            steps {
+                script {
+                    withCredentials([
+                            sshUserPrivateKey(credentialsId: "riajenk-ssh", usernameVariable: 'username', keyFileVariable: 'keyfile'),
+                            usernamePassword(credentialsId: 'jenkins-harbor', usernameVariable: 'dockerUserName', passwordVariable: 'dockerPassword')]){
+                        def remote = [:]
+                        remote.name = "${FQDN}"
+                        remote.host = "${IP}"
+                        remote.user = "${username}"
+                        remote.identityFile = "${keyfile}"
+                        remote.allowAnyHosts = true
+                        sshPut remote: remote, from: 'front/docker-compose.yml', into: '/opt/riajenk/'
+                        sshCommand(remote: remote, command: "sudo dpkg -S docker.io || sudo apt-get install -yf docker.io", sudo: true)
+                        sshCommand(remote: remote, command: "ls /usr/local/bin/docker-compose || sudo curl -L \"https://github.com/docker/compose/releases/download/1.25.5/docker-compose-\$(uname -s)-\$(uname -m)\" -o /usr/local/bin/docker-compose", sudo: true)
+                        sshCommand(remote: remote, command: "chmod +x /usr/local/bin/docker-compose", sudo: true)
+                        sshCommand(remote: remote, command: "docker login ${PRIVATE_REGISTRY} -u '${dockerUserName}' -p '${dockerPassword}'", sudo: true)
+                        sshCommand(remote: remote, command: "PRIVATE_REGISTRY='${PRIVATE_REGISTRY}/' PUBLIC_REGISTRY=${PUBLIC_REGISTRY} DOCKER_TAG=${DOCKER_TAG} docker-compose -f /opt/riajenk/docker-compose.yml pull frontend", sudo: true)
+                        sshCommand(remote: remote, command: "PRIVATE_REGISTRY='${PRIVATE_REGISTRY}/' PUBLIC_REGISTRY=${PUBLIC_REGISTRY} DOCKER_TAG=${DOCKER_TAG} docker-compose -p rh6_deploy -f /opt/riajenk/docker-compose.yml up -d", sudo: true)
+                    }
+                }
+            }
+        }
+    }
+    post {
+        always {
+            cleanWs()
+            deleteDir()
+        }
+    }
+}

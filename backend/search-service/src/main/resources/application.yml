@@ -1,0 +1,23 @@
+spring:
+  application:
+    name: search-service
+security:
+  oauth2:
+    client:
+      client-id: search-service-client
+      client-secret: 4e64bfbe-7b44-11ea-bc55-0242ac130003
+      grant-type: client_credentials
+      access-token-uri: http://localhost/oauth/token
+      scope: any
+    resource:
+      token-info-uri: http://localhost/oauth/check_token
+
+management:
+  endpoints:
+    web:
+      base-path: /api/v1/search/actuator
+
+logging:
+  level:
+    root: info
+    tech.introduct: debug

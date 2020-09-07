@@ -1,0 +1,34 @@
+{
+  "files.exclude": {
+    "**/node_modules": true,
+    "**/dist": true
+  },
+  "css.lint.duplicateProperties": "warning",
+  "css.lint.hexColorLength": "warning",
+  "diffEditor.ignoreTrimWhitespace": false,
+  "editor.formatOnPaste": true,
+  "editor.formatOnSave": true,
+  "editor.tabSize": 2,
+  "editor.wrappingIndent": "deepIndent",
+  "files.insertFinalNewline": true,
+  "files.trimTrailingWhitespace": true,
+  "html.format.wrapAttributes": "force-aligned",
+  "javascript.format.insertSpaceAfterFunctionKeywordForAnonymousFunctions": false,
+  "javascript.format.semicolons": "remove",
+  "javascript.preferences.quoteStyle": "single",
+  "prettier.trailingComma": "all",
+  "typescript.format.insertSpaceAfterFunctionKeywordForAnonymousFunctions": false,
+  "typescript.format.semicolons": "remove",
+  "typescript.preferences.quoteStyle": "single",
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "typescript.updateImportsOnFileMove.enabled": "always",
+  "vetur.format.defaultFormatter.js": "vscode-typescript",
+  "vetur.format.defaultFormatter.ts": "vscode-typescript",
+  "vetur.format.defaultFormatterOptions": {
+    "prettyhtml": {
+      "wrapAttributes": true
+    }
+  },
+  "eslint.alwaysShowStatus": true,
+  "eslint.format.enable": true
+}

@@ -1,0 +1,8 @@
+@import 'veera-vue/styles/variables';
+
+// local vars
+$tab-padding: 1.375rem 1.5rem;
+$header-control-border: 1px solid #dbdfe2;  // color not present in veera CSS
+// todo: DRY with .ts
+$bp-hide-user-controls: 990px;
+$bp-hide-sidenav: 680px;

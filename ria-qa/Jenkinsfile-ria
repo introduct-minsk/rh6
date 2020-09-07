@@ -1,0 +1,96 @@
+pipeline {
+  environment {
+      // add '/' at the end of PRIVATE_REGISTRY and PRIVATE_REGISTRYPush line if custom registry is used
+      PRIVATE_REGISTRY="harbor.riaint.ee/rh6"
+      PUBLIC_REGISTRY="nexus.ria.ee:8500/"
+      FQDN='rh6-component1-02.dev.riaint.ee'
+      IP='10.1.19.36'
+      DOCKER_TAG = "${currentBuild.number}"
+      TARGET="https://10.1.19.35"
+      SELENOID_IP="10.1.19.36"
+  }
+  agent any
+  stages {
+    stage('Build test qa image') {
+      agent { label 'master' }
+        steps {
+            script {
+                dir("${env.WORKSPACE}/ria-qa") {
+                    qaAutotestsImage = docker.build("ria-qa:${DOCKER_TAG}", ".")
+                }
+            }
+        }
+    }
+    stage ('Push qa image to harbor') {
+        agent { label 'master' }
+        steps {
+            script {
+                docker.withRegistry('https://${PRIVATE_REGISTRY}', 'jenkins-harbor') {
+                    qaAutotestsImage.push()
+                }
+            }
+            sh 'docker rmi -f `docker images | grep ria-qa | awk \'{print $3}\'`'
+        }
+    }
+    stage('Run autotests') {
+       agent { label 'master' }
+       steps {
+           script {
+               withCredentials([
+                       sshUserPrivateKey(credentialsId: "riajenk-ssh", usernameVariable: 'username', keyFileVariable: 'keyfile'),
+                       usernamePassword(credentialsId: 'jenkins-harbor', usernameVariable: 'dockerUserName', passwordVariable: 'dockerPassword')]){
+                   def remote = [:]
+                   remote.name = "${FQDN}"
+                   remote.host = "${IP}"
+                   remote.user = "${username}"
+                   remote.identityFile = "${keyfile}"
+                   remote.allowAnyHosts = true
+
+                   //put compose and swagger files to the destination host
+                   sshPut remote: remote, from: 'ria-qa/docker-compose.yml', into: '/opt/riajenk/docker-compose-qa.yml'
+                   sshPut remote: remote, from: 'ria-qa/config', into: '/opt/riajenk/'
+
+                   //create folders to store selenoid videos, reports and logs
+                   sshCommand(remote: remote, command: "ls /opt/riajenk/video || rm -rf /opt/riajenk/video", sudo: true)
+                   sshCommand(remote: remote, command: "mkdir -p /opt/riajenk/video", sudo: false)
+                   sshCommand(remote: remote, command: "ls /opt/riajenk/logs || rm -rf /opt/riajenk/logs", sudo: true)
+                   sshCommand(remote: remote, command: "mkdir -p /opt/riajenk/logs", sudo: false)
+
+                   //remove allure report folder
+                   sshCommand(remote: remote, command: "ls /opt/riajenk/allure-results || rm -rf /opt/riajenk/allure-results", sudo: true)
+
+                   //install docker and docker-compose
+                   sshCommand(remote: remote, command: "sudo dpkg -S docker.io || sudo apt-get install -yf docker.io", sudo: true)
+                   sshCommand(remote: remote, command: "ls /usr/local/bin/docker-compose || sudo curl -L \"https://nexus.ria.ee/repository/raw-public/docker/compose/releases/download/1.25.5/docker-compose-\$(uname -s)-\$(uname -m)\" -o /usr/local/bin/docker-compose", sudo: true)
+                   sshCommand(remote: remote, command: "chmod +x /usr/local/bin/docker-compose", sudo: true)
+                   sshCommand(remote: remote, command: "docker login ${PRIVATE_REGISTRY} -u '${dockerUserName}' -p '${dockerPassword}'", sudo: true)
+                   sshCommand(remote: remote, command: "PRIVATE_REGISTRY='${PRIVATE_REGISTRY}/' PUBLIC_REGISTRY=${PUBLIC_REGISTRY} docker-compose -f /opt/riajenk/docker-compose-qa.yml -p rh6_qa up -d", sudo: true)
+                   sshCommand(remote: remote, command: "PRIVATE_REGISTRY='${PRIVATE_REGISTRY}/' docker pull ${PRIVATE_REGISTRY}/ria-qa:${DOCKER_TAG}", sudo: true)
+                   sshCommand(remote: remote, command: "PRIVATE_REGISTRY='${PRIVATE_REGISTRY}/' docker run -v /opt/riajenk/allure-results:/app/allure-results --rm ${PRIVATE_REGISTRY}/ria-qa:${DOCKER_TAG} poetry run pytest --selenoid_host=${SELENOID_IP} --web_host=${TARGET} --alluredir allure-results || sudo true", sudo: true)
+                   sshCommand(remote: remote, command: "tar -cvf - allure-results | gzip -c > allure-results.tar.gz ", sudo: true)
+                   sshGet remote: remote, from: '/opt/riajenk/allure-results.tar.gz', into: 'allure-results.tar.gz', override: true
+                   sshCommand(remote: remote, command: "docker-compose -f /opt/riajenk/docker-compose-qa.yml -p rh6_qa down", sudo: true)
+                   sshCommand(remote: remote, command: "sudo docker rmi -f `sudo docker images | grep ria-qa | awk \'{print \$3}\'` || true", sudo: true)
+
+                   sh 'ls allure-results || rm -rf allure-results'
+                   sh 'tar -xvf allure-results.tar.gz'
+               }
+
+           }
+       }
+
+    }
+    stage('Reports') {
+        agent { label 'master' }
+        steps {
+            allure([
+                    includeProperties: false,
+                    jdk: '',
+                    properties: [],
+                    reportBuildPolicy: 'ALWAYS',
+                    results: [[path: 'allure-results/']]
+            ])
+        }
+    }
+  }
+}

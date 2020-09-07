@@ -1,0 +1,21 @@
+{
+  "validationReport": {
+    "validationConclusion": {
+      "policy": {
+        "policyDescription": "Policy according most common requirements of Estonian Public Administration, to validate Qualified Electronic Signatures and Electronic Seals with Qualified Certificates (according to Regulation (EU) No 910/2014, aka eIDAS). I.e. signatures that have been recognized as Advanced electronic Signatures (AdES) and AdES supported by a Qualified Certificate (AdES/QC) do not produce a positive validation result, with exception for seals, where AdES/QC and above will produce positive result. Signatures and Seals which are not compliant with ETSI standards (referred by eIDAS) may produce unknown or invalid validation result. Validation process is based on eIDAS Article 32 and referred ETSI standards.",
+        "policyName": "POLv4",
+        "policyUrl": "http://open-eid.github.io/SiVa/siva3/appendix/validation_policy/#POLv4"
+      },
+      "validationTime": "2020-05-21T16:58:25Z",
+      "signatureForm": "ASiC-E",
+      "validatedDocument": {
+        "filename": "message.asice"
+      },
+      "validationLevel": "ARCHIVAL_DATA",
+      "signatures": [
+      ],
+      "validSignaturesCount": 0,
+      "signaturesCount": 0
+    }
+  }
+}

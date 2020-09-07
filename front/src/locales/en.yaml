@@ -1,0 +1,32 @@
+readReceiptShort: The user {id} has read your message
+readReceiptFull: The user {nameFirst} {nameLast} has read your message “{subject}” at {timestamp}
+searchPlaceholder: Search
+serverError: An error occurred while communicating with the server.
+signedBy: Signed by
+signedByAt: at
+signatureInvalid: Digital signature invalid
+validationServiceDown: Digital signature is not validated. (Validation service down.)
+signWithIdCard: Sign with ID-card
+digidocLink: DigiDoc
+numAttachmentsLimitReachedError: Sorry, maximum number of attachable files is {max}.
+roleSelectPrompt: Please select a role under which you will be operating.
+fileSelector:
+  line1: Drag & drop
+  line2: a file here or
+  choose: Choose
+  multipleTip: To choose multiple files hold down CTRL/CMND
+uploadStatuses:
+  uploaded: Uploaded
+  uploading: Uploading
+  waiting: Waiting
+  deleting: Deleting
+  error: Unknown error
+  tooLarge: File is too large. Maximum size of attachable file is 50 Mb.
+onBehalfOf: 'on behalf of {who}'
+receiverPlaceholder: National or registry code, digits only
+errors:
+  hwcrypto:
+    no_implementation: The DigiDoc plugin not installed.
+  api:
+    aar_oigused_service_unavailable: There was a technical error in receiving representation rights from AAR registry. Thus your representation rights are limited with representing yourself.
+    rr414_service_error_10027: Your personal ID is not found in the population register. You are not allowed to proceed with the Mailbox application.

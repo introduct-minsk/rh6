@@ -1,0 +1,18 @@
+@import "~veera-styles/scss/settings/_variables";
+// this generates warnings:
+@import "~veera-styles/scss/settings/_colors";
+
+@function getColor($color-name) {
+  @return map-get($colors, $color-name);
+}
+
+$color-link: getColor(sapphire-blue-10);
+$color-info: getColor(sapphire-blue-10);
+$color-success: getColor(sea-green-10);
+$color-warning: getColor(dark-tangerine-10);
+$color-error: getColor(jasper-10);
+
+$shadow-1: 0px 1px 5px rgba(0, 0, 0, 0.2);
+$shadow-2: 0px 4px 10px rgba(0, 0, 0, 0.14);
+
+$side-nav-width: 280px;

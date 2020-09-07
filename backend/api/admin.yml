@@ -1,0 +1,243 @@
+openapi: 3.0.1
+info:
+  title: Swagger Admin Mailbox Data REST
+  description: This API requires authorize with `DB_READ_WRITE` role. </br> Use `Authorize` button, fill client_id and client_secret with enabeled any scopes.
+  version: 1.0.0
+servers:
+  - url: https://10.1.19.35/admin/data/mailbox_db
+  - url: https://63.35.82.38/admin/data/mailbox_db
+tags:
+  - name: File
+    description: API for uploading and downloading files from hadoop
+  - name: Message
+    description: API for reading and writing message data directly from the database
+paths:
+  "/files/upload":
+    post:
+      tags:
+        - File
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  maximum: 1
+                  type: string
+                  format: binary
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/File'
+      security:
+        - oauth2:
+            - any
+  "/files/{fileId}":
+    get:
+      tags:
+        - File
+      parameters:
+        - name: fileId
+          in: path
+          description: uuid
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+          content:
+            "*/*":
+              schema:
+                type: string
+                format: binary
+                example: "bytes"
+      security:
+        - oauth2:
+            - any
+  "/messages":
+    get:
+      tags:
+        - Message
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            format: int32
+        - name: size
+          in: query
+          schema:
+            type: integer
+            format: int32
+        - name: sort
+          in: query
+          schema:
+            type: string
+        - name: direction
+          in: query
+          schema:
+            type: string
+            enum:
+              - ASC
+              - DESC
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessagePage'
+      security:
+        - oauth2:
+            - any
+    post:
+      tags:
+        - Message
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Message'
+        required: false
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+      security:
+        - oauth2:
+            - any
+  "/messages/{id}":
+    get:
+      tags:
+        - Message
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+      security:
+        - oauth2:
+            - any
+components:
+  schemas:
+    File:
+      type: object
+      properties:
+        id:
+          type: string
+          description: uuid
+          example: "00000000-0000-0000-0000-000000000000"
+        name:
+          readOnly: true
+          type: string
+          example: "file.txt"
+        type:
+          readOnly: true
+          type: string
+          example: "text/plain"
+        externalId:
+          readOnly: true
+          type: string
+          example: "/mailbox/00000000-0000-0000-0000-000000000000.txt"
+    MessagePage:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/Message'
+        size:
+          type: integer
+          example: 10
+        totalElements:
+          type: integer
+          example: 40
+        totalPages:
+          type: integer
+          example: 4
+        number:
+          type: integer
+          example: 0
+    Message:
+      required:
+        - receiver
+        - sender
+        - type
+      type: object
+      properties:
+        id:
+          type: string
+          readOnly: true
+          example: "00000000-0000-0000-0000-000000000000"
+        type:
+          type: string
+          enum:
+            - SIMPLE
+            - NOTIFICATION
+        subject:
+          maxLength: 255
+          type: string
+          example: Lorem ipsum dolor
+        createdOn:
+          type: string
+          example: "2019-04-12T11:31:25.219185+03:00"
+        unread:
+          type: boolean
+        sender:
+          maxLength: 13
+          minLength: 13
+          type: string
+          example: EE39407120022
+        senderUserId:
+          maxLength: 13
+          minLength: 13
+          type: string
+          example: EE39407120022
+        receiver:
+          maxLength: 13
+          minLength: 13
+          type: string
+          example: EE39407120022
+        body:
+          type: object
+          properties:
+            id:
+              type: string
+              readOnly: true
+              example: "00000000-0000-0000-0000-000000000000"
+            text:
+              maxLength: 255
+              type: string
+              example: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque rutrum consequat massa."
+        sign:
+          readOnly: true
+          allOf:
+            - $ref: '#/components/schemas/File'
+        attachments:
+          type: array
+          items:
+            $ref: '#/components/schemas/File'
+  securitySchemes:
+    oauth2:
+      type: oauth2
+      flows:
+        clientCredentials:
+          tokenUrl: /oauth/token
+          scopes:
+            any: ""

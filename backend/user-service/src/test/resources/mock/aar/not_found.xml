@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<soap:Envelope
+        xmlns:aar="http://producers.aar.xtee.riik.ee/producer/aar"
+        xmlns:id="http://x-road.eu/xsd/identifiers"
+        xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"
+        xmlns:xrd="http://x-road.eu/xsd/xroad.xsd"
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <soap:Body>
+        <soap:Fault>
+            <faultcode>soap:Server</faultcode>
+            <faultstring>Isikukood ei ole leitud
+            </faultstring>
+        </soap:Fault>
+    </soap:Body>
+</soap:Envelope>

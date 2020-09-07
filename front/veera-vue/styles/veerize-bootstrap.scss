@@ -1,0 +1,18 @@
+a {
+  color: getColor(sapphire-blue-10);
+  &.disabled, &:disabled {
+    color: getColor(black-coral-5);
+  }
+}
+
+input[type="text"], textarea.form-control {
+  border: 1px solid getColor(black-coral-5);
+  border-radius: 5px;
+
+  &:focus {
+    border-color: getColor(sapphire-blue-10);
+    // !important is here because $input-box-shadow has
+    // no effect on invalid states (must be a bootstrap bug
+    box-shadow: none !important;
+  }
+}

@@ -1,0 +1,38 @@
+version: "2.1"
+
+
+services:
+  selenoid:
+    container_name: selenoid
+    image: ${PUBLIC_REGISTRY}aerokube/selenoid
+    network_mode: bridge
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+      - "./config:/etc/selenoid/config"
+      - "./video:/etc/selenoid/video"
+      - "./logs:/etc/selenoid/logs"
+    environment:
+      - OVERRIDE_VIDEO_OUTPUT_DIR=$PWD/video
+    command: ["-conf", "/etc/selenoid/config/browsers.json",
+              "-video-output-dir", "/etc/selenoid/video",
+              "-retry-count", "2",
+              "-session-attempt-timeout", "2m",
+              "-timeout", "2m",
+              "-limit", "8",
+              "-log-output-dir", "/etc/selenoid/logs/"]
+    ports:
+      - "4444:4444"
+
+  selenoid-ui:
+    image: "${PUBLIC_REGISTRY}aerokube/selenoid-ui"
+    network_mode: bridge
+    container_name: selenoid-ui
+    links:
+      - selenoid
+    command: ["--selenoid-uri", "http://selenoid:4444"]
+    ports:
+      - "8082:8080"
+
+  selenoid-chrome-81:
+    image: "selenoid/vnc:chrome_81.0"
+    command: echo disabled

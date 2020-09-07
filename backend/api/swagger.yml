@@ -1,0 +1,903 @@
+openapi: 3.0.1
+info:
+  title: Swagger Mailbox
+  description: The API requires to authorize with `USER` role. </br> Just go to `oauth2/authorization/tara` page and after success authorization HTTP Cookie will be set and you can use the API
+  version: 1.0.0
+servers:
+  - url: https://10.1.19.35/api/v1
+  - url: https://63.35.82.38/api/v1
+tags:
+  - name: auth
+    description: login and logout API
+  - name: users
+    description: API for getting user information (RR414), roles (AAR), and user settings
+  - name: messages-draft
+    description: API for creation draft message and submission
+  - name: messages
+    description: API for reading messages
+paths:
+  "/oauth2/authorization/tara":
+    get:
+      tags:
+        - auth
+      responses:
+        302:
+          description: redirect to tara
+          content: {}
+  "/oauth2/logout":
+    post:
+      tags:
+        - auth
+      responses:
+        200:
+          description: remove session and redirect to home
+          content: {}
+      security:
+        - tara_auth:
+            - openid
+  "/users/me":
+    get:
+      tags:
+        - users
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DetailedUser'
+        401:
+          description: unauthorized
+          content: {}
+      security:
+        - tara_auth:
+            - openid
+  "/users/me/settings":
+    get:
+      tags:
+        - users
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Settings'
+        401:
+          description: unauthorized
+          content: {}
+      security:
+        - tara_auth:
+            - openid
+    post:
+      tags:
+        - users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Settings'
+        required: true
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Settings'
+        400:
+          description: bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        401:
+          description: unauthorized
+          content: {}
+      security:
+        - tara_auth:
+            - openid
+  "/users/me/roles":
+    get:
+      tags:
+        - users
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserRole'
+        401:
+          description: unauthorized
+          content: {}
+      security:
+        - tara_auth:
+            - openid
+  "/users/me/role":
+    post:
+      tags:
+        - users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRole'
+        required: true
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserRole'
+        400:
+          description: bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        401:
+          description: unauthorized
+          content: {}
+      security:
+        - tara_auth:
+            - openid
+  "/messages/draft/settings":
+    get:
+      tags:
+        - messages-draft
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DraftMessageSettings'
+        401:
+          description: unauthorized
+          content: {}
+      security:
+        - tara_auth:
+            - openid
+  "/messages/draft":
+    get:
+      tags:
+        - messages-draft
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DraftMessage'
+        400:
+          description: bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        401:
+          description: unauthorized
+          content: {}
+      security:
+        - tara_auth:
+            - openid
+    post:
+      tags:
+        - messages-draft
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DraftMessage'
+        required: true
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DraftMessage'
+        400:
+          description: bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        401:
+          description: unauthorized
+          content: {}
+      security:
+        - tara_auth:
+            - openid
+    patch:
+      tags:
+        - messages-draft
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DraftMessage'
+        required: true
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DraftMessage'
+        400:
+          description: bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        401:
+          description: unauthorized
+          content: {}
+      security:
+        - tara_auth:
+            - openid
+    delete:
+      tags:
+        - messages-draft
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DraftMessage'
+        400:
+          description: bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        401:
+          description: unauthorized
+          content: {}
+      security:
+        - tara_auth:
+            - openid
+  "/messages/draft/attachments/upload":
+    post:
+      tags:
+        - messages-draft
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/File'
+        400:
+          description: bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        401:
+          description: unauthorized
+          content: {}
+      security:
+        - tara_auth:
+            - openid
+  "/messages/draft/attachments/{attachmentsId}":
+    put:
+      tags:
+        - messages-draft
+      parameters:
+        - name: attachmentsId
+          in: path
+          description: uuid
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/File'
+        400:
+          description: bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        401:
+          description: unauthorized
+          content: {}
+      security:
+        - tara_auth:
+            - openid
+    get:
+      tags:
+        - messages-draft
+      parameters:
+        - name: attachmentsId
+          in: path
+          description: uuid
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+          content:
+            "*/*":
+              schema:
+                type: string
+                format: binary
+                example: "bytes"
+        400:
+          description: bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        401:
+          description: unauthorized
+          content: {}
+      security:
+        - tara_auth:
+            - openid
+    delete:
+      tags:
+        - messages-draft
+      parameters:
+        - name: attachmentsId
+          in: path
+          description: uuid
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/File'
+        400:
+          description: bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        401:
+          description: unauthorized
+          content: {}
+      security:
+        - tara_auth:
+            - openid
+  "/messages/draft/sign/data":
+    get:
+      tags:
+        - messages-draft
+      parameters:
+        - name: certInHex
+          in: query
+          description: certInHex
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SignDataResponse'
+        400:
+          description: bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        401:
+          description: unauthorized
+          content: {}
+      security:
+        - tara_auth:
+            - openid
+  "/messages/draft/sign":
+    post:
+      tags:
+        - messages-draft
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignMessageRequest'
+        required: true
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Signature'
+        400:
+          description: bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        401:
+          description: unauthorized
+          content: {}
+      security:
+        - tara_auth:
+            - openid
+    delete:
+      tags:
+        - messages-draft
+      responses:
+        200:
+          description: Ok
+        401:
+          description: unauthorized
+          content: {}
+      security:
+        - tara_auth:
+            - openid
+    get:
+      tags:
+        - messages-draft
+      responses:
+        200:
+          description: Ok
+          content:
+            application/vnd.etsi.asic-e+zip:
+              schema:
+                type: string
+                format: binary
+                example: "bytes"
+        400:
+          description: bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        401:
+          description: unauthorized
+          content: {}
+      security:
+        - tara_auth:
+            - openid
+  "/messages/draft/send":
+    post:
+      tags:
+        - messages-draft
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+        400:
+          description: bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        401:
+          description: unauthorized
+          content: {}
+      security:
+        - tara_auth:
+            - openid
+  "/messages":
+    get:
+      tags:
+        - messages
+      parameters:
+        - name: direction
+          in: query
+          schema:
+            type: string
+            enum:
+              - IN
+              - OUT
+        - name: page
+          in: query
+          schema:
+            minimum: 0
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          schema:
+            maximum: 50
+            minimum: 5
+            type: integer
+            default: 5
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessagePage'
+        400:
+          description: bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        401:
+          description: unauthorized
+          content: {}
+      security:
+        - tara_auth:
+            - openid
+  "/messages/{messageId}":
+    get:
+      tags:
+        - messages
+      parameters:
+        - name: messageId
+          in: path
+          description: uuid
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DetailedMessage'
+        400:
+          description: bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        401:
+          description: unauthorized
+          content: {}
+      security:
+        - tara_auth:
+            - openid
+  "/messages/search":
+    get:
+      tags:
+        - messages
+      parameters:
+        - name: query
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            minimum: 0
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          schema:
+            maximum: 50
+            minimum: 5
+            type: integer
+            default: 5
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessagePage'
+        400:
+          description: bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        401:
+          description: unauthorized
+          content: {}
+      security:
+        - tara_auth:
+            - openid
+  "/messages/{messageId}/attachments/{attachmentsId}":
+    get:
+      tags:
+        - messages
+      parameters:
+        - name: messageId
+          in: path
+          description: uuid
+          required: true
+          schema:
+            type: string
+        - name: attachmentsId
+          in: path
+          description: uuid
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+          content:
+            "*/*":
+              schema:
+                type: string
+                format: binary
+                example: "bytes"
+        400:
+          description: bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        401:
+          description: unauthorized
+          content: {}
+      security:
+        - tara_auth:
+            - openid
+  "/messages/{messageId}/sign":
+    get:
+      tags:
+        - messages
+      parameters:
+        - name: messageId
+          in: path
+          description: uuid
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+          content:
+            application/vnd.etsi.asic-e+zip:
+              schema:
+                type: string
+                format: binary
+                example: "bytes"
+        400:
+          description: bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        401:
+          description: unauthorized
+          content: {}
+      security:
+        - tara_auth:
+            - openid
+components:
+  schemas:
+    UserRole:
+      type: object
+      properties:
+        id:
+          maxLength: 13
+          type: string
+          example: "EE39407120022"
+    User:
+      type: object
+      properties:
+        id:
+          maxLength: 13
+          minLength: 13
+          type: string
+          example: "EE39407120022"
+        firstName:
+          maxLength: 50
+          type: string
+          example: "Estée"
+        lastName:
+          maxLength: 50
+          type: string
+          example: "Lauder"
+    DetailedUser:
+      allOf:
+        - $ref: '#/components/schemas/User'
+      type: object
+      properties:
+        dateOfBirth:
+          type: string
+          example: "01.01.2000"
+        address:
+          type: string
+          example: "Soome, Helsingi, Tyynenmerenkatu 14"
+        role:
+          $ref: '#/components/schemas/UserRole'
+    UserWithRole:
+      allOf:
+        - $ref: '#/components/schemas/User'
+      type: object
+      properties:
+        roleId:
+          maxLength: 13
+          nullable: true
+          type: string
+          example: EE39407120022
+    Settings:
+      type: object
+      properties:
+        locale:
+          maxLength: 8
+          type: string
+          example: et-EE
+    File:
+      type: object
+      properties:
+        id:
+          type: string
+          description: uuid
+          example: "00000000-0000-0000-0000-000000000000"
+        name:
+          type: string
+          example: "file.txt"
+    DraftMessageSettings:
+      type: object
+      properties:
+        maxAttachmentNumber:
+          type: integer
+          format: int32
+          example: 25
+        maxFileSizeBytes:
+          type: integer
+          format: int65
+          example: 52428800
+    DraftMessage:
+      type: object
+      properties:
+        receiver:
+          maxLength: 13
+          minLength: 13
+          type: string
+          example: EE39407120022
+        subject:
+          maxLength: 255
+          type: string
+          example: "Subject of message"
+        text:
+          maxLength: 2048
+          type: string
+          example: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua"
+        attachments:
+          readOnly: true
+          type: array
+          items:
+            $ref: '#/components/schemas/File'
+        signature:
+          readOnly: true
+          allOf:
+            - $ref: '#/components/schemas/Signature'
+    Message:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "00000000-0000-0000-0000-000000000000"
+        sender:
+          $ref: '#/components/schemas/UserWithRole'
+        receiver:
+          $ref: '#/components/schemas/User'
+        type:
+          type: string
+          enum:
+            - SIMPLE
+            - NOTIFICATION
+        subject:
+          maxLength: 255
+          type: string
+        unread:
+          type: boolean
+        createdOn:
+          type: string
+          example: "2020-04-03T13:21:40.804722+03:00"
+        related:
+          $ref: '#/components/schemas/Message'
+    DetailedMessage:
+      allOf:
+        - $ref: '#/components/schemas/Message'
+      type: object
+      properties:
+        text:
+          maxLength: 2048
+          type: string
+        attachments:
+          readOnly: true
+          type: array
+          items:
+            $ref: '#/components/schemas/File'
+        signature:
+          $ref: '#/components/schemas/Signature'
+    SignDataResponse:
+      type: object
+      properties:
+        hex:
+          type: string
+    SignMessageRequest:
+      type: object
+      properties:
+        signatureInHex:
+          type: string
+    Signature:
+      type: object
+      properties:
+        valid:
+          type: boolean
+          example: true
+        signedBy:
+          type: string
+          example: "TEST,TEST,50003050099"
+        signingTime:
+          type: string
+          example: "2020-04-03T13:21:40.804722+03:00"
+    MessagePage:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/Message'
+        number:
+          type: integer
+          example: 0
+        size:
+          type: integer
+          example: 10
+        totalPages:
+          type: integer
+          example: 40
+        totalElements:
+          type: integer
+          example: 400
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "error_code"
+        field:
+          type: string
+          example: "field"
+        details:
+          type: string
+          example: "error_message"
+  securitySchemes:
+    tara_auth:
+      type: oauth2
+      flows:
+        authorizationCode:
+          authorizationUrl: https://tara-test.ria.ee/oidc/authorize
+          tokenUrl: https://tara-test.ria.ee/oidc/token
+          scopes:
+            openid: ""

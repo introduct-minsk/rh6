@@ -1,0 +1,35 @@
+// don’t just
+// @import url('https://fonts.googleapis.com/icon?family=Material+Icons+Outlined');
+
+// remove the broken .eot format so IE11 will fallback to .otf
+@font-face {
+  font-family: 'Material Icons Outlined';
+  font-style: normal;
+  font-weight: 400;
+
+  src:
+    url(https://fonts.gstatic.com/s/materialiconsoutlined/v18/gok-H7zzDkdnRel8-DQ6KAXJ69wP1tGnf4ZGhUcel5euIg.woff2) format('woff2'),
+    url(https://fonts.gstatic.com/s/materialiconsoutlined/v18/gok-H7zzDkdnRel8-DQ6KAXJ69wP1tGnf4ZGhUcY.woff) format('woff'),
+    // url(https://fonts.gstatic.com/s/materialiconsoutlined/v18/gok-H7zzDkdnRel8-DQ6KAXJ69wP1tGnf4ZGhUca.eot),
+    url(https://fonts.gstatic.com/s/materialiconsoutlined/v18/gok-H7zzDkdnRel8-DQ6KAXJ69wP1tGnf4ZGhUcd.otf) format('opentype'),
+  ;
+}
+
+.material-icons-outlined {
+  font-family: 'Material Icons Outlined';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+}
+
+// and fix
+.material-icons-outlined {
+  font-feature-settings: 'liga';
+}

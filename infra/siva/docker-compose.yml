@@ -1,0 +1,45 @@
+version: "2.1"
+
+services:
+  siva-web-app:
+    image: ${PRIVATE_REGISTRY}siva-web-app:latest
+    restart: always
+    environment:
+      - JAVA_OPTS=-Xmx512M -Xms512M
+      - SIVA_PROXY_XROAD_URL=https://xroad-validation-service:8081
+      - SERVER_SSL_ENABLED=true
+      - SERVER_HTTP2_ENABLED=true
+      - SERVER_SSL_KEY_STORE=${SSL_KEY_STORE:-file:/var/certificate.jks}
+      - SERVER_SSL_KEY_STORE_TYPE=${SSL_KEY_STORE_TYPE:-PKCS12}
+      - SERVER_SSL_KEY_STORE_PASSWORD=${SSL_KEY_STORE_PASSWORD:-secret}
+      - SERVER_SSL_KEY_PASSWORD=${SSL_KEY_PASSWORD:-secret}
+      - SERVER_SSL_KEY_ALIAS=${SSL_KEY_ALIAS:-client-cert}
+    volumes:
+      - ./siva_client_certs/user-service-1.jks:/var/certificate.jks
+    networks:
+      mailbox-network:
+        aliases:
+          - siva-web-app
+
+  xroad-validation-service:
+    image: ${PRIVATE_REGISTRY}xroad-validation-service:latest
+    restart: always
+    environment:
+      - JAVA_OPTS=-Xmx512M -Xms512M
+      - SERVER_SSL_ENABLED=true
+      - SERVER_HTTP2_ENABLED=true
+      - SERVER_SSL_KEY_STORE=${SSL_KEY_STORE:-file:/var/certificate.jks}
+      - SERVER_SSL_KEY_STORE_TYPE=${SSL_KEY_STORE_TYPE:-PKCS12}
+      - SERVER_SSL_KEY_STORE_PASSWORD=${SSL_KEY_STORE_PASSWORD:-secret}
+      - SERVER_SSL_KEY_PASSWORD=${SSL_KEY_PASSWORD:-secret}
+      - SERVER_SSL_KEY_ALIAS=${SSL_KEY_ALIAS:-client-cert}
+    volumes:
+      - ./siva_client_certs/user-service-2.jks:/var/certificate.jks
+    networks:
+      mailbox-network:
+        aliases:
+          - xroad-validation-service
+
+networks:
+  mailbox-network:
+    name: mailbox-network

@@ -1,0 +1,20 @@
+.tabs.veera {
+  .tab {
+    flex: 1 0 auto;
+    background-color: getColor(white);
+    border: 1px solid #dbdfe2; //todo
+    border-top: none;
+    border-radius: 0px 5px 5px 5px;
+  }
+
+  .nav-tabs {
+    a {
+      padding: 0.8em 1.5em;
+      font-size: 0.875em;
+      color: black;
+      &.active {
+        color: getColor(sapphire-blue-10);
+      }
+    }
+  }
+}

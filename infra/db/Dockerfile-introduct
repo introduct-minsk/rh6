@@ -1,0 +1,15 @@
+FROM postgres:9.6.12
+
+ARG CERT_FILE
+ARG KEY_FILE 
+
+COPY ${CERT_FILE} /etc/pki/cert.crt
+COPY ${KEY_FILE} /etc/pki/cert.key
+
+RUN chown 999:999 /etc/pki/cert.crt
+RUN chown 999:999 /etc/pki/cert.key
+RUN chmod 600 /etc/pki/cert.crt
+RUN chmod 600 /etc/pki/cert.key
+
+ENTRYPOINT ["docker-entrypoint.sh"] 
+CMD ["postgres"]

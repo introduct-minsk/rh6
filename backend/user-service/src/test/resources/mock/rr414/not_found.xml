@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xrd="http://x-road.eu/xsd/xroad.xsd" xmlns:prod="http://rr.x-road.eu/producer" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:id="http://x-road.eu/xsd/identifiers" xmlns:repr="http://x-road.eu/xsd/representation.xsd" xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/">
+    <SOAP-ENV:Header>
+        <xrd:client id:objectType="SUBSYSTEM">
+            <id:xRoadInstance>ee-dev</id:xRoadInstance>
+            <id:memberClass>GOV</id:memberClass>
+            <id:memberCode>70006317</id:memberCode>
+            <id:subsystemCode>riigiportaal-citizen</id:subsystemCode>
+        </xrd:client>
+        <xrd:service id:objectType="SERVICE">
+            <id:xRoadInstance>ee-dev</id:xRoadInstance>
+            <id:memberClass>GOV</id:memberClass>
+            <id:memberCode>70008440</id:memberCode>
+            <id:subsystemCode>rr</id:subsystemCode>
+            <id:serviceCode>RR414</id:serviceCode>
+            <id:serviceVersion>v3</id:serviceVersion>
+        </xrd:service>
+        <xrd:issue>?</xrd:issue>
+        <xrd:userId>45307316010</xrd:userId>
+        <xrd:id>${=java.util.UUID.randomUUID()}</xrd:id>
+        <xrd:requestHash algorithmId="http://www.w3.org/2001/04/xmlenc#sha512">JLvvhlXLFYid1fAkJblBoaZrohBLlMgD/fy2JVSihb9hJxseUGZHCTAPxgZLO+dinYugKVfw/8oLHMX3Le6trw==</xrd:requestHash>
+        <xrd:protocolVersion>4.0</xrd:protocolVersion>
+    </SOAP-ENV:Header>
+    <SOAP-ENV:Body>
+        <prod:RR414Response>
+            <request>
+                <Isikukood>4530731601</Isikukood>
+            </request>
+            <response>
+                <faultCode>10027</faultCode>
+                <faultString>Isik puudub RRis</faultString>
+                <XTeeVeaTeade></XTeeVeaTeade>
+                <IsikuEesnimi></IsikuEesnimi>
+                <IsikuPerenimi></IsikuPerenimi>
+                <IsikuSugu></IsikuSugu>
+                <IsikuSynniaeg></IsikuSynniaeg>
+                <IsikuStaatus></IsikuStaatus>
+                <IsikuElukoht></IsikuElukoht>
+                <IsikuADS_ADR_ID>0</IsikuADS_ADR_ID>
+                <IsikuADS_OID></IsikuADS_OID>
+                <IsikuADS_KOODAADRESS></IsikuADS_KOODAADRESS>
+                <IsikuADS_ADOB_ID>0</IsikuADS_ADOB_ID>
+                <Veakood>10027</Veakood>
+                <Veatekst>Isik puudub RRis</Veatekst>
+                <Suhted>
+                </Suhted>
+                <Hooldusoigus>
+                </Hooldusoigus>
+            </response>
+        </prod:RR414Response>
+    </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>

@@ -1,0 +1,14 @@
+version: '2.1'
+
+services:
+  frontend:
+    container_name: frontend
+    image: ${PRIVATE_REGISTRY}${DOCKER_IMAGE:-mailbox-frontend}:${DOCKER_TAG:-latest}
+    networks:
+      mailbox-network:
+        aliases:
+          - frontend
+
+networks:
+  mailbox-network:
+    name: mailbox-network

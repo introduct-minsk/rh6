@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?><SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/" xmlns:id="http://x-road.eu/xsd/identifiers" xmlns:prod="http://rr.x-road.eu/producer" xmlns:repr="http://x-road.eu/xsd/representation.xsd" xmlns:xrd="http://x-road.eu/xsd/xroad.xsd" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <SOAP-ENV:Header>
+        <xrd:client id:objectType="SUBSYSTEM">
+            <id:xRoadInstance>ee-dev</id:xRoadInstance>
+            <id:memberClass>GOV</id:memberClass>
+            <id:memberCode>70006317</id:memberCode>
+            <id:subsystemCode>riigiportaal-citizen</id:subsystemCode>
+        </xrd:client>
+        <xrd:service id:objectType="SERVICE">
+            <id:xRoadInstance>ee-dev</id:xRoadInstance>
+            <id:memberClass>GOV</id:memberClass>
+            <id:memberCode>70008440</id:memberCode>
+            <id:subsystemCode>rr</id:subsystemCode>
+            <id:serviceCode>RR414</id:serviceCode>
+            <id:serviceVersion>v3</id:serviceVersion>
+        </xrd:service>
+        <xrd:userId>45307316010</xrd:userId>
+        <xrd:id>172810c49e070008440-2048089941</xrd:id>
+        <xrd:requestHash algorithmId="http://www.w3.org/2001/04/xmlenc#sha512">Nc6Dh+cxwhm21WGHIzV1Uvi3HINUiKOc+xZZmMJS4DTsnGRt2J7tetq4FMdb5UocPtsf2ecFS7cKwuKndivY5A==</xrd:requestHash>
+        <xrd:protocolVersion>4.0</xrd:protocolVersion>
+    </SOAP-ENV:Header>
+    <SOAP-ENV:Body>
+        <prod:RR414Response>
+            <request>
+                <Isikukood>60001019906</Isikukood></request>
+            <response>
+                <XTeeVeaTeade/>
+                <IsikuEesnimi>MARY ÄNN</IsikuEesnimi>
+                <IsikuPerenimi>O'CONNEŽ-ŠUSLIK</IsikuPerenimi>
+                <IsikuSugu>NAINE</IsikuSugu>
+                <IsikuSynniaeg>01.01.2000</IsikuSynniaeg>
+                <IsikuStaatus>ELUS / REGISTRIS</IsikuStaatus>
+                <IsikuElukoht>Soome, Helsingi, Tyynenmerenkatu 14</IsikuElukoht>
+                <IsikuADS_ADR_ID>0</IsikuADS_ADR_ID>
+                <IsikuADS_OID/>
+                <IsikuADS_KOODAADRESS/>
+                <IsikuADS_ADOB_ID>0</IsikuADS_ADOB_ID>
+                <Veakood>0</Veakood>
+                <Veatekst/>
+                <Suhted>
+                    <Suhe>
+                        <Suhe.Suhtetyyp>EESTKOSTJA</Suhe.Suhtetyyp>
+                        <Suhe.sIsikukood>47808288888</Suhe.sIsikukood>
+                        <Suhe.sPerenimi>KOVVALAM12</Suhe.sPerenimi>
+                        <Suhe.sEesnimi>SIGRID12</Suhe.sEesnimi>
+                        <Suhe.sIsikuElukoht>Viljandi maakond, Viljandi linn</Suhe.sIsikuElukoht>
+                        <Suhe.sADS_ADR_ID>100046</Suhe.sADS_ADR_ID>
+                        <Suhe.sADS_OID>OV00000897</Suhe.sADS_OID>
+                        <Suhe.sADS_KOODAADRESS>848970000000000000000000000000000</Suhe.sADS_KOODAADRESS>
+                        <Suhe.sADS_ADOB_ID>0</Suhe.sADS_ADOB_ID>
+                        <Suhe.sIsikuStaatus>ELUS / REGISTRIS</Suhe.sIsikuStaatus>
+                        <Suhe.SuhStaatus>KEHTIV</Suhe.SuhStaatus>
+                    </Suhe>
+                </Suhted>
+                <Hooldusoigus>
+                </Hooldusoigus>
+            </response>
+        </prod:RR414Response>
+    </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>

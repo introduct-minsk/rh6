@@ -1,0 +1,52 @@
+pipeline {
+    environment {
+        PRIVATE_REGISTRY="harbor.riaint.ee/rh6"
+        PUBLIC_REGISTRY="https://nexus.ria.ee:8500/"
+        FQDN='rh6-component1-01.dev.riaint.ee'
+        IP='10.1.19.35'
+        DOCKER_IMAGE = "mailbox-frontend"
+        DOCKER_TAG = "${currentBuild.number}"
+        NPM_REGISTRY = "https://nexus.ria.ee/repository/npm-registry/"
+
+        SLAVE_IMAGE="node:12-stretch"
+        SLAVE_ARGS="--network host -v /tmp/npm_cache:/root/npm_cache -v /var/run/docker.sock:/var/run/docker.sock"
+    }
+    triggers {
+        pollSCM '* * * * *'
+    }
+    agent any
+    stages {
+       stage('Publish veera styles to Nexus') {
+          agent { label 'master' }
+          //when { changeset "veera-styles/**" }
+          steps {
+              dir("${env.WORKSPACE}/backend") {
+              nodejs(nodeJSInstallationName: 'NodeJS-12.x', cacheLocationStrategy: workspace()) {
+                  sh 'npm install rh6-veera-styles'
+             
+                  }
+              }
+           }
+        }
+        stage('Debug ria components') {
+            agent {
+                docker {
+                    image "$SLAVE_IMAGE"
+                    registryUrl "$PUBLIC_REGISTRY"
+                    args "$SLAVE_ARGS"
+                }
+            }
+            steps {
+                dir("${env.WORKSPACE}/front") {
+                    sh 'export HOME=$(pwd)'
+                    sh 'mkdir -p /tmp/npm_cache'
+                    sh 'export NPM_CONFIG_REGISTRY="${NPM_REGISTRY}"'
+                    #sh 'npm install --cache /tmp/npm_cache'
+                    sh 'npm install ria-components'
+                    sh 'ls -lrt node_modules/'
+                }
+            }
+        }
+
+    }
+}

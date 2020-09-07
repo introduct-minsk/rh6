@@ -1,0 +1,60 @@
+spring:
+  application:
+    name: mailbox-service
+  datasource:
+    url: jdbc:postgresql://localhost:5432/postgres
+    username: postgres
+    password: postgres
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        default_schema: mailbox_schema
+  flyway:
+    table: flyway_schema_history_mailbox
+    baseline-on-migrate: true
+    url: jdbc:postgresql://localhost:5432/postgres
+    user: postgres
+    password: postgres
+  session:
+    store-type: redis
+  servlet:
+    multipart:
+      max-file-size: 50MB
+      max-request-size: 51MB
+security:
+  oauth2:
+    client:
+      client-id: mailbox-service-client
+      client-secret: 0db0b8ac-7995-11ea-bc55-0242ac130003
+      grant-type: client_credentials
+      access-token-uri: http://localhost/oauth/token
+      scope: any
+    resource:
+      token-info-uri: http://localhost/oauth/check_token
+
+management:
+  endpoints:
+    web:
+      base-path: /api/v1/messages/actuator
+
+feign:
+  client:
+    user-service:
+      url: http://localhost
+    search-service:
+      url: http://localhost
+
+mailbox:
+  max-attachment-number: 25
+  hadoop:
+    uri: file://target
+    user: hadoop
+    path: target/testmailbox/
+
+logging:
+  level:
+    root: info
+    tech.introduct: debug
+

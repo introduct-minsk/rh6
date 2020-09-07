@@ -1,0 +1,621 @@
+version: "2.1"
+
+services:
+
+  mailbox-swagger:
+    container_name: mailbox-swagger
+    image: ${PUBLIC_REGISTRY}swaggerapi/swagger-ui
+    restart: always
+    environment:
+      BASE_URL: /api/v1/swagger
+      SWAGGER_JSON: /api/swagger.yml
+    volumes:
+      - ./api:/api
+    networks:
+      mailbox-network:
+        aliases:
+          - mailbox-swagger
+
+  mailbox-data-swagger:
+    container_name: mailbox-data-swagger
+    image: ${PUBLIC_REGISTRY}swaggerapi/swagger-ui
+    restart: always
+    environment:
+      BASE_URL: /admin/data/swagger
+      SWAGGER_JSON: /api/admin.yml
+    volumes:
+      - ./api:/api
+    networks:
+      mailbox-network:
+        aliases:
+          - mailbox-data-swagger
+
+  postgres:
+    container_name: postgres_container
+    image: ${PRIVATE_REGISTRY}postgres_database
+    restart: always
+    command: -c ssl=on -c ssl_cert_file=/etc/pki/cert.crt -c ssl_key_file=/etc/pki/cert.key
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB:-postgres}?useSSL=true&requireSSL=true
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - PGDATA=/data/postgres
+    volumes:
+      - postgres:/data/postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    ports:
+      - "8432:5432"
+    networks:
+      mailbox-network:
+        aliases:
+          - postgres
+
+  redis:
+    container_name: redis-master
+    image: ${PUBLIC_REGISTRY}bitnami/redis:latest
+    environment:
+      - REDIS_REPLICATION_MODE=master
+      - ALLOW_EMPTY_PASSWORD=yes
+    volumes:
+      - ./redis_certs:/opt/bitnami/redis/certs
+      - redis:/data
+    healthcheck:
+      test: redis-cli --tls --cert /opt/bitnami/redis/certs/redis-client.crt --key  /opt/bitnami/redis/certs/redis-client.key --cacert /opt/bitnami/redis/certs/ca.crt ping
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      mailbox-network:
+        aliases:
+          - redis
+    ports:
+      - '6379'
+    command: redis-server --bind 0.0.0.0 --tls-port 6379 --port 0 --tls-cert-file /opt/bitnami/redis/certs/redis-client.crt --tls-key-file  /opt/bitnami/redis/certs/redis-client.key --tls-ca-cert-file /opt/bitnami/redis/certs/ca.crt
+
+  redis-slave:
+    container_name: redis-slave
+    image: ${PUBLIC_REGISTRY}bitnami/redis:latest
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+      - REDIS_REPLICATION_MODE=slave
+      - REDIS_MASTER_HOST=redis
+      - REDIS_MASTER_PASSWORD=str0ng_passw0rd
+    healthcheck:
+      test: redis-cli --tls --cert /opt/bitnami/redis/certs/redis-client.crt --key  /opt/bitnami/redis/certs/redis-client.key --cacert /opt/bitnami/redis/certs/ca.crt ping
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    ports:
+      - '6379'
+    command: redis-server --bind 0.0.0.0 --tls-port 6379 --port 0 --tls-cert-file /opt/bitnami/redis/certs/redis-client.crt --tls-key-file  /opt/bitnami/redis/certs/redis-client.key --tls-ca-cert-file /opt/bitnami/redis/certs/ca.crt
+    depends_on:
+      - redis
+    volumes:
+      - ./redis_certs:/opt/bitnami/redis/certs
+      - redis_slave:/data
+    networks:
+      mailbox-network:
+        aliases:
+          - redis-slave
+
+  redis-sentinel:
+    image: ${PUBLIC_REGISTRY}bitnami/redis-sentinel:latest
+    container_name: redis-sentinel
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+      - REDIS_SENTINEL_TLS_CERT_FILE=/opt/bitnami/redis/certs/redis-client.crt
+      - REDIS_SENTINEL_TLS_KEY_FILE=/opt/bitnami/redis/certs/redis-client.key
+      - REDIS_SENTINEL_TLS_CA_FILE=/opt/bitnami/redis/certs/ca.crt
+      - REDIS_SENTINEL_TLS_ENABLED=yes
+    volumes:
+      - ./redis_certs:/opt/bitnami/redis/certs
+    depends_on:
+      - redis
+      - redis-slave
+    ports:
+      - '26380:26379'
+    networks:
+      mailbox-network:
+        aliases:
+          - redis-sentinel
+
+  elasticsearch:
+    image: ${PUBLIC_REGISTRY}elastic/elasticsearch:7.8.0
+    container_name: elasticsearch
+    restart: always
+    environment:
+      - ELASTIC_PASSWORD=secret
+      - discovery.type=single-node
+      - xpack.security.enabled=true
+      - xpack.license.self_generated.type=trial
+      - xpack.security.http.ssl.enabled=true
+      - xpack.security.http.ssl.client_authentication=none
+      - xpack.security.http.ssl.verification_mode=certificate
+      - xpack.security.http.ssl.key=/usr/share/elasticsearch/config/certificates/elastic-client.key
+      - xpack.security.http.ssl.certificate=/usr/share/elasticsearch/config/certificates/elastic-client.crt
+      - xpack.security.http.ssl.certificate_authorities=/usr/share/elasticsearch/config/certificates/ca.crt
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ports:
+      - '9200:9200'
+    healthcheck:
+      test: curl -E /usr/share/elasticsearch/config/certificates/elastic-client.crt --cacert /usr/share/elasticsearch/config/certificates/ca.crt -s https://localhost:9200 >/dev/null; if [[ $$? == 52 ]]; then echo 0; else echo 1; fi
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    volumes:
+      - elasticsearch:/usr/share/elasticsearch/data
+      - ./elastic_certs:/usr/share/elasticsearch/config/certificates
+    networks:
+      mailbox-network:
+        aliases:
+          - elasticsearch
+
+  auth-service-1:
+    image:  ${PRIVATE_REGISTRY}auth-service:${DOCKER_TAG:-latest}
+    container_name: auth-service-1
+    hostname: auth-service
+    environment:
+      - SPRING_FLYWAY_URL=jdbc:postgresql://postgres:5432/${POSTGRES_DB:-postgres}?useSSL=true&requireSSL=true
+      - SPRING_FLYWAY_USER=${POSTGRES_USER:-postgres}
+      - SPRING_FLYWAY_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/${POSTGRES_DB:-postgres}?useSSL=true&requireSSL=true
+      - SPRING_DATASOURCE_USERNAME=${POSTGRES_USER:-postgres}
+      - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_TARA_CLIENT_ID=${TARA_CLIENT_ID:-ru-int-ria-gov-inbox-sample2}
+      - SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_TARA_CLIENT_SECRET=${TARA_CLIENT_SECRET:-aFTFC4h-nnwxKTAZe9tfmi3H}
+      - SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_TARA_REDIRECT_URI=${TARA_REDIRECT:-https://10.1.19.35/authorize/taara-callback}
+      - SPRING_REDIS_SENTINEL_MASTER=mymaster
+      - SPRING_REDIS_SENTINEL_NODES=redis-sentinel:26379
+      - SPRING_REDIS_SENTINEL_PASSWORD=str0ng_passw0rd
+      - SPRING_REDIS_SSL=true
+      - SERVER_PORT=8443
+      - SERVER_SSL_CHECK=false
+      - SERVER_SSL_ENABLED=true
+      - SERVER_HTTP2_ENABLED=true
+      - SERVER_SSL_KEY_STORE=${SSL_KEY_STORE:-file:/var/certificate.jks}
+      - SERVER_SSL_KEY_STORE_TYPE=${SSL_KEY_STORE_TYPE:-PKCS12}
+      - SERVER_SSL_KEY_STORE_PASSWORD=${SSL_KEY_STORE_PASSWORD:-secret}
+      - SERVER_SSL_KEY_PASSWORD=${SSL_KEY_PASSWORD:-secret}
+      - SERVER_SSL_KEY_ALIAS=${SSL_KEY_ALIAS:-client-cert}
+      - LOGGING_CONFIG=classpath:log4j2-syslog.xml
+      - SYSLOG_HOST=${SYSLOG_HOST:-10.1.19.35}
+      - SYSLOG_PORT=${SYSLOG_PORT:-32514}
+      - SYSLOG_APP_NAME=auth-service-1
+      - JAVA_OPTS=-Xmx512M -Xms512M
+    restart: always
+    volumes:
+      - ./client_certs/auth-service-1.jks:/var/certificate.jks
+    healthcheck:
+      test: ["CMD", "curl", "-f", "-k", "https://localhost:8443/oauth/actuator/health"]
+      timeout: 20s
+      interval: 10s
+      retries: 10
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      mailbox-network:
+        aliases:
+          - auth-service-1
+
+  mailbox-service-1:
+    image: ${PRIVATE_REGISTRY}mailbox-service:${DOCKER_TAG:-latest}
+    container_name: mailbox-service-1
+    hostname: mailbox-service
+    environment:
+      - SPRING_FLYWAY_URL=jdbc:postgresql://postgres:5432/${POSTGRES_DB:-postgres}?useSSL=true&requireSSL=true
+      - SPRING_FLYWAY_USER=${POSTGRES_USER:-postgres}
+      - SPRING_FLYWAY_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/${POSTGRES_DB:-postgres}?useSSL=true&requireSSL=true
+      - SPRING_DATASOURCE_USERNAME=${POSTGRES_USER:-postgres}
+      - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - SPRING_REDIS_SENTINEL_MASTER=mymaster
+      - SPRING_REDIS_SENTINEL_NODES=redis-sentinel:26379
+      - SPRING_REDIS_SENTINEL_PASSWORD=str0ng_passw0rd
+      - SPRING_REDIS_SSL=true
+      - SECURITY_OAUTH2_RESOURCE_TOKEN_INFO_URI=https://${LB_IP:-10.1.19.35:8443}/oauth/check_token
+      - SECURITY_OAUTH2_CLIENT_ACCESS_TOKEN_URI=https://${LB_IP:-10.1.19.35:8443}/oauth/token
+      - FEIGN_CLIENT_USER_SERVICE_URL=https://${LB_IP:-10.1.19.35:8443}
+      - FEIGN_CLIENT_SEARCH_SERVICE_URL=https://${LB_IP:-10.1.19.35:8443}
+      - SERVER_PORT=8443
+      - SERVER_SSL_CHECK=false
+      - SERVER_SSL_ENABLED=true
+      - SERVER_HTTP2_ENABLED=true
+      - SERVER_SSL_KEY_STORE=${SSL_KEY_STORE:-file:/var/certificate.jks}
+      - SERVER_SSL_KEY_STORE_TYPE=${SSL_KEY_STORE_TYPE:-PKCS12}
+      - SERVER_SSL_KEY_STORE_PASSWORD=${SSL_KEY_STORE_PASSWORD:-secret}
+      - SERVER_SSL_KEY_PASSWORD=${SSL_KEY_PASSWORD:-secret}
+      - SERVER_SSL_KEY_ALIAS=${SSL_KEY_ALIAS:-client-cert}
+      - LOGGING_CONFIG=classpath:log4j2-syslog.xml
+      - SYSLOG_HOST=${SYSLOG_HOST:-10.1.19.35}
+      - SYSLOG_PORT=${SYSLOG_PORT:-32514}
+      - SYSLOG_APP_NAME=mailbox-service-1
+      - MAILBOX_HADOOP_URI=${HADOOP_URI:-hdfs://namenode:9000}
+      - MAILBOX_HADOOP_USER=hadoop
+      - MAILBOX_HADOOP_PATH=/mailbox/
+      - SIVA_SERVICE_HOST=https://${LB_IP:-10.1.19.35:9443}
+      - JAVA_OPTS=-Xmx2048M -Xms2048M
+    restart: always
+    volumes:
+      - ./config/909.p12d:/var/909.p12d
+      - ./client_certs/mailbox-service-1.jks:/var/certificate.jks
+    healthcheck:
+      test: ["CMD", "curl", "-f", "-k", "https://localhost:8443/api/v1/messages/actuator/health"]
+      timeout: 20s
+      interval: 10s
+      retries: 10
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      mailbox-network:
+        aliases:
+          - mailbox-service-1
+
+  user-service-1:
+    image: ${PRIVATE_REGISTRY}user-service:${DOCKER_TAG:-latest}
+    container_name: user-service-1
+    hostname: user-service
+    environment:
+      - SPRING_FLYWAY_URL=jdbc:postgresql://postgres:5432/${POSTGRES_DB:-postgres}?useSSL=true&requireSSL=true
+      - SPRING_FLYWAY_USER=${POSTGRES_USER:-postgres}
+      - SPRING_FLYWAY_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/${POSTGRES_DB:-postgres}?useSSL=true&requireSSL=true
+      - SPRING_DATASOURCE_USERNAME=${POSTGRES_USER:-postgres}
+      - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - SPRING_REDIS_SENTINEL_MASTER=mymaster
+      - SPRING_REDIS_SENTINEL_NODES=redis-sentinel:26379
+      - SPRING_REDIS_SENTINEL_PASSWORD=str0ng_passw0rd
+      - SPRING_REDIS_SSL=true
+      - SECURITY_OAUTH2_RESOURCE_TOKEN_INFO_URI=https://${LB_IP:-10.1.19.35:8443}/oauth/check_token
+      - SECURITY_OAUTH2_CLIENT_ACCESS_TOKEN_URI=https://${LB_IP:-10.1.19.35:8443}/oauth/token
+      - SERVER_PORT=8443
+      - SERVER_SSL_CHECK=false
+      - SERVER_SSL_ENABLED=true
+      - SERVER_HTTP2_ENABLED=true
+      - SERVER_SSL_KEY_STORE=${SSL_KEY_STORE:-file:/var/certificate.jks}
+      - SERVER_SSL_KEY_STORE_TYPE=${SSL_KEY_STORE_TYPE:-PKCS12}
+      - SERVER_SSL_KEY_STORE_PASSWORD=${SSL_KEY_STORE_PASSWORD:-secret}
+      - SERVER_SSL_KEY_PASSWORD=${SSL_KEY_PASSWORD:-secret}
+      - SERVER_SSL_KEY_ALIAS=${SSL_KEY_ALIAS:-client-cert}
+      - LOGGING_CONFIG=classpath:log4j2-syslog.xml
+      - SYSLOG_HOST=${SYSLOG_HOST:-10.1.19.35}
+      - SYSLOG_PORT=${SYSLOG_PORT:-32514}
+      - SYSLOG_APP_NAME=user-service-1
+      - XROAD_SECURITY_SERVER=http://10.0.13.198
+      - JAVA_OPTS=-Xmx512M -Xms512M
+    restart: always
+    volumes:
+      - ./client_certs/user-service-1.jks:/var/certificate.jks
+    healthcheck:
+      test: ["CMD", "curl", "-f", "-k", "https://localhost:8443/api/v1/users/actuator/health"]
+      timeout: 20s
+      interval: 10s
+      retries: 10
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      mailbox-network:
+        aliases:
+          - user-service-1
+
+  search-service-1:
+    image: ${PRIVATE_REGISTRY}search-service:${DOCKER_TAG:-latest}
+    container_name: search-service-1
+    hostname: search-service
+    environment:
+      - SPRING_REDIS_SENTINEL_MASTER=mymaster
+      - SPRING_REDIS_SENTINEL_NODES=redis-sentinel:26379
+      - SPRING_REDIS_SENTINEL_PASSWORD=str0ng_passw0rd
+      - SPRING_REDIS_SSL=true
+      - SECURITY_OAUTH2_RESOURCE_TOKEN_INFO_URI=https://${LB_IP:-10.1.19.35:8443}/oauth/check_token
+      - SECURITY_OAUTH2_CLIENT_ACCESS_TOKEN_URI=https://${LB_IP:-10.1.19.35:8443}/oauth/token
+      - SPRING_ELASTICSEARCH_REST_URIS=https://elasticsearch:9200
+      - SPRING_ELASTICSEARCH_REST_USERNAME=elastic
+      - SPRING_ELASTICSEARCH_REST_PASSWORD=secret
+      - SERVER_PORT=8443
+      - SERVER_SSL_CHECK=false
+      - SERVER_SSL_ENABLED=true
+      - SERVER_HTTP2_ENABLED=true
+      - SERVER_SSL_KEY_STORE=${SSL_KEY_STORE:-file:/var/certificate.jks}
+      - SERVER_SSL_KEY_STORE_TYPE=${SSL_KEY_STORE_TYPE:-PKCS12}
+      - SERVER_SSL_KEY_STORE_PASSWORD=${SSL_KEY_STORE_PASSWORD:-secret}
+      - SERVER_SSL_KEY_PASSWORD=${SSL_KEY_PASSWORD:-secret}
+      - SERVER_SSL_KEY_ALIAS=${SSL_KEY_ALIAS:-client-cert}
+      - LOGGING_CONFIG=classpath:log4j2-syslog.xml
+      - SYSLOG_HOST=${SYSLOG_HOST:-10.1.19.35}
+      - SYSLOG_PORT=${SYSLOG_PORT:-32514}
+      - SYSLOG_APP_NAME=search-service-1
+      - JAVA_OPTS=-Xmx512M -Xms512M
+    restart: always
+    volumes:
+      - ./client_certs/search-service-1.jks:/var/certificate.jks
+    healthcheck:
+      test: ["CMD", "curl", "-f", "-k", "https://localhost:8443/api/v1/search/actuator/health"]
+      timeout: 20s
+      interval: 10s
+      retries: 3
+    depends_on:
+      redis:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
+    networks:
+      mailbox-network:
+        aliases:
+          - search-service-1
+
+  auth-service-2:
+    image:  ${PRIVATE_REGISTRY}auth-service:${DOCKER_TAG:-latest}
+    container_name: auth-service-2
+    hostname: auth-service
+    environment:
+      - SPRING_FLYWAY_URL=jdbc:postgresql://postgres:5432/${POSTGRES_DB:-postgres}?useSSL=true&requireSSL=true
+      - SPRING_FLYWAY_USER=${POSTGRES_USER:-postgres}
+      - SPRING_FLYWAY_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/${POSTGRES_DB:-postgres}?useSSL=true&requireSSL=true
+      - SPRING_DATASOURCE_USERNAME=${POSTGRES_USER:-postgres}
+      - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_TARA_CLIENT_ID=${TARA_CLIENT_ID:-ru-int-ria-gov-inbox-sample2}
+      - SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_TARA_CLIENT_SECRET=${TARA_CLIENT_SECRET:-aFTFC4h-nnwxKTAZe9tfmi3H}
+      - SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_TARA_REDIRECT_URI=${TARA_REDIRECT:-https://10.1.19.35/authorize/taara-callback}
+      - SPRING_REDIS_SENTINEL_MASTER=mymaster
+      - SPRING_REDIS_SENTINEL_NODES=redis-sentinel:26379
+      - SPRING_REDIS_SENTINEL_PASSWORD=str0ng_passw0rd
+      - SPRING_REDIS_SSL=true
+      - SERVER_PORT=8443
+      - SERVER_SSL_CHECK=false
+      - SERVER_SSL_ENABLED=true
+      - SERVER_HTTP2_ENABLED=true
+      - SERVER_SSL_KEY_STORE=${SSL_KEY_STORE:-file:/var/certificate.jks}
+      - SERVER_SSL_KEY_STORE_TYPE=${SSL_KEY_STORE_TYPE:-PKCS12}
+      - SERVER_SSL_KEY_STORE_PASSWORD=${SSL_KEY_STORE_PASSWORD:-secret}
+      - SERVER_SSL_KEY_PASSWORD=${SSL_KEY_PASSWORD:-secret}
+      - SERVER_SSL_KEY_ALIAS=${SSL_KEY_ALIAS:-client-cert}
+      - LOGGING_CONFIG=classpath:log4j2-syslog.xml
+      - SYSLOG_HOST=${SYSLOG_HOST:-10.1.19.35}
+      - SYSLOG_PORT=${SYSLOG_PORT:-32514}
+      - SYSLOG_APP_NAME=auth-service-2
+      - JAVA_OPTS=-Xmx512M -Xms512M
+    restart: always
+    volumes:
+      - ./client_certs/auth-service-2.jks:/var/certificate.jks
+    healthcheck:
+      test: ["CMD", "curl", "-f", "-k", "https://localhost:8443/oauth/actuator/health"]
+      timeout: 20s
+      interval: 10s
+      retries: 10
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      mailbox-network:
+        aliases:
+          - auth-service-2
+
+  mailbox-service-2:
+    image: ${PRIVATE_REGISTRY}mailbox-service:${DOCKER_TAG:-latest}
+    container_name: mailbox-service-2
+    hostname: mailbox-service
+    environment:
+      - SPRING_FLYWAY_URL=jdbc:postgresql://postgres:5432/${POSTGRES_DB:-postgres}?useSSL=true&requireSSL=true
+      - SPRING_FLYWAY_USER=${POSTGRES_USER:-postgres}
+      - SPRING_FLYWAY_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/${POSTGRES_DB:-postgres}?useSSL=true&requireSSL=true
+      - SPRING_DATASOURCE_USERNAME=${POSTGRES_USER:-postgres}
+      - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - SPRING_REDIS_SENTINEL_MASTER=mymaster
+      - SPRING_REDIS_SENTINEL_NODES=redis-sentinel:26379
+      - SPRING_REDIS_SENTINEL_PASSWORD=str0ng_passw0rd
+      - SPRING_REDIS_SSL=true
+      - SECURITY_OAUTH2_RESOURCE_TOKEN_INFO_URI=https://${LB_IP:-10.1.19.35:8443}/oauth/check_token
+      - SECURITY_OAUTH2_CLIENT_ACCESS_TOKEN_URI=https://${LB_IP:-10.1.19.35:8443}/oauth/token
+      - FEIGN_CLIENT_USER_SERVICE_URL=https://${LB_IP:-10.1.19.35:8443}
+      - FEIGN_CLIENT_SEARCH_SERVICE_URL=https://${LB_IP:-10.1.19.35:8443}
+      - SERVER_PORT=8443
+      - SERVER_SSL_CHECK=false
+      - SERVER_SSL_ENABLED=true
+      - SERVER_HTTP2_ENABLED=true
+      - SERVER_SSL_KEY_STORE=${SSL_KEY_STORE:-file:/var/certificate.jks}
+      - SERVER_SSL_KEY_STORE_TYPE=${SSL_KEY_STORE_TYPE:-PKCS12}
+      - SERVER_SSL_KEY_STORE_PASSWORD=${SSL_KEY_STORE_PASSWORD:-secret}
+      - SERVER_SSL_KEY_PASSWORD=${SSL_KEY_PASSWORD:-secret}
+      - SERVER_SSL_KEY_ALIAS=${SSL_KEY_ALIAS:-client-cert}
+      - LOGGING_CONFIG=classpath:log4j2-syslog.xml
+      - SYSLOG_HOST=${SYSLOG_HOST:-10.1.19.35}
+      - SYSLOG_PORT=${SYSLOG_PORT:-32514}
+      - SYSLOG_APP_NAME=mailbox-service-2
+      - MAILBOX_HADOOP_URI=${HADOOP_URI:-hdfs://namenode:9000}
+      - MAILBOX_HADOOP_USER=hadoop
+      - MAILBOX_HADOOP_PATH=/mailbox/
+      - SIVA_SERVICE_HOST=https://${LB_IP:-10.1.19.35:9443}
+      - JAVA_OPTS=-Xmx2048M -Xms2048M
+    restart: always
+    volumes:
+      - ./client_certs/mailbox-service-2.jks:/var/certificate.jks
+      - ./config/909.p12d:/var/909.p12d
+    healthcheck:
+      test: ["CMD", "curl", "-f", "-k", "https://localhost:8443/api/v1/messages/actuator/health"]
+      timeout: 20s
+      interval: 10s
+      retries: 10
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      mailbox-network:
+        aliases:
+          - mailbox-service-2
+
+  user-service-2:
+    image: ${PRIVATE_REGISTRY}user-service:${DOCKER_TAG:-latest}
+    container_name: user-service-2
+    hostname: user-service
+    environment:
+      - SPRING_FLYWAY_URL=jdbc:postgresql://postgres:5432/${POSTGRES_DB:-postgres}?useSSL=true&requireSSL=true
+      - SPRING_FLYWAY_USER=${POSTGRES_USER:-postgres}
+      - SPRING_FLYWAY_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/${POSTGRES_DB:-postgres}?useSSL=true&requireSSL=true
+      - SPRING_DATASOURCE_USERNAME=${POSTGRES_USER:-postgres}
+      - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - SPRING_REDIS_SENTINEL_MASTER=mymaster
+      - SPRING_REDIS_SENTINEL_NODES=redis-sentinel:26379
+      - SPRING_REDIS_SENTINEL_PASSWORD=str0ng_passw0rd
+      - SPRING_REDIS_SSL=true
+      - SECURITY_OAUTH2_RESOURCE_TOKEN_INFO_URI=https://${LB_IP:-10.1.19.35:8443}/oauth/check_token
+      - SECURITY_OAUTH2_CLIENT_ACCESS_TOKEN_URI=https://${LB_IP:-10.1.19.35:8443}/oauth/token
+      - SERVER_PORT=8443
+      - SERVER_SSL_CHECK=false
+      - SERVER_SSL_ENABLED=true
+      - SERVER_HTTP2_ENABLED=true
+      - SERVER_SSL_KEY_STORE=${SSL_KEY_STORE:-file:/var/certificate.jks}
+      - SERVER_SSL_KEY_STORE_TYPE=${SSL_KEY_STORE_TYPE:-PKCS12}
+      - SERVER_SSL_KEY_STORE_PASSWORD=${SSL_KEY_STORE_PASSWORD:-secret}
+      - SERVER_SSL_KEY_PASSWORD=${SSL_KEY_PASSWORD:-secret}
+      - SERVER_SSL_KEY_ALIAS=${SSL_KEY_ALIAS:-client-cert}
+      - LOGGING_CONFIG=classpath:log4j2-syslog.xml
+      - SYSLOG_HOST=${SYSLOG_HOST:-10.1.19.35}
+      - SYSLOG_PORT=${SYSLOG_PORT:-32514}
+      - SYSLOG_APP_NAME=user-service-2
+      - XROAD_SECURITY_SERVER=http://10.0.13.198
+      - JAVA_OPTS=-Xmx512M -Xms512M
+    restart: always
+    volumes:
+      - ./client_certs/user-service-2.jks:/var/certificate.jks
+    healthcheck:
+      test: ["CMD", "curl", "-f", "-k", "https://localhost:8443/api/v1/users/actuator/health"]
+      timeout: 20s
+      interval: 10s
+      retries: 10
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      mailbox-network:
+        aliases:
+          - user-service-2
+
+  search-service-2:
+    image: ${PRIVATE_REGISTRY}search-service:${DOCKER_TAG:-latest}
+    container_name: search-service-2
+    hostname: search-service
+    environment:
+      - SPRING_REDIS_SENTINEL_MASTER=mymaster
+      - SPRING_REDIS_SENTINEL_NODES=redis-sentinel:26379
+      - SPRING_REDIS_SENTINEL_PASSWORD=str0ng_passw0rd
+      - SPRING_REDIS_SSL=true
+      - SECURITY_OAUTH2_RESOURCE_TOKEN_INFO_URI=https://${LB_IP:-10.1.19.35:8443}/oauth/check_token
+      - SECURITY_OAUTH2_CLIENT_ACCESS_TOKEN_URI=https://${LB_IP:-10.1.19.35:8443}/oauth/token
+      - SPRING_ELASTICSEARCH_REST_URIS=https://elasticsearch:9200
+      - SPRING_ELASTICSEARCH_REST_USERNAME=elastic
+      - SPRING_ELASTICSEARCH_REST_PASSWORD=secret
+      - SERVER_PORT=8443
+      - SERVER_SSL_CHECK=false
+      - SERVER_SSL_ENABLED=true
+      - SERVER_HTTP2_ENABLED=true
+      - SERVER_SSL_KEY_STORE=${SSL_KEY_STORE:-file:/var/certificate.jks}
+      - SERVER_SSL_KEY_STORE_TYPE=${SSL_KEY_STORE_TYPE:-PKCS12}
+      - SERVER_SSL_KEY_STORE_PASSWORD=${SSL_KEY_STORE_PASSWORD:-secret}
+      - SERVER_SSL_KEY_PASSWORD=${SSL_KEY_PASSWORD:-secret}
+      - SERVER_SSL_KEY_ALIAS=${SSL_KEY_ALIAS:-client-cert}
+      - LOGGING_CONFIG=classpath:log4j2-syslog.xml
+      - SYSLOG_HOST=${SYSLOG_HOST:-10.1.19.35}
+      - SYSLOG_PORT=${SYSLOG_PORT:-32514}
+      - SYSLOG_APP_NAME=search-service-2
+      - JAVA_OPTS=-Xmx512M -Xms512M
+    restart: always
+    volumes:
+      - ./client_certs/search-service-2.jks:/var/certificate.jks
+    healthcheck:
+      test: ["CMD", "curl", "-f", "-k", "https://localhost:8443/api/v1/search/actuator/health"]
+      timeout: 20s
+      interval: 10s
+      retries: 3
+    depends_on:
+      redis:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
+    networks:
+      mailbox-network:
+        aliases:
+          - search-service-2
+
+  namenode:
+    image: ${PUBLIC_REGISTRY}bde2020/hadoop-namenode:2.0.0-hadoop3.2.1-java8
+    container_name: namenode
+    restart: always
+    volumes:
+      - hadoop_namenode:/hadoop/dfs/name
+    environment:
+      - CLUSTER_NAME=test
+      - HADOOP_HEAPZIZE=512
+    env_file:
+      - ./config/hadoop.env
+    networks:
+      mailbox-network:
+        aliases:
+          - namenode
+
+  datanode_1:
+    image: ${PUBLIC_REGISTRY}bde2020/hadoop-datanode:2.0.0-hadoop3.2.1-java8
+    container_name: datanode_1
+    restart: always
+    volumes:
+      - hadoop_datanode_1:/hadoop/dfs/data
+    environment:
+      - SERVICE_PRECONDITION=namenode:9870
+      - HADOOP_HEAPZIZE=512
+    env_file:
+      - ./config/hadoop.env
+    networks:
+      mailbox-network:
+        aliases:
+          - datanode
+
+  datanode_2:
+    image: ${PUBLIC_REGISTRY}bde2020/hadoop-datanode:2.0.0-hadoop3.2.1-java8
+    container_name: datanode_2
+    restart: always
+    volumes:
+      - hadoop_datanode_2:/hadoop/dfs/data
+    environment:
+      - SERVICE_PRECONDITION=namenode:9870
+      - HADOOP_HEAPZIZE=512
+    env_file:
+      - ./config/hadoop.env
+    networks:
+      mailbox-network:
+        aliases:
+          - datanode
+
+networks:
+  mailbox-network:
+    name: mailbox-network
+
+volumes:
+  postgres:
+  redis:
+  redis_slave:
+  elasticsearch:
+  hadoop_namenode:
+  hadoop_datanode_1:
+  hadoop_datanode_2:
+  hadoop_datanode_3:

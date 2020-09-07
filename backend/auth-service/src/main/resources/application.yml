@@ -1,0 +1,49 @@
+spring:
+  application:
+    name: auth-service
+  datasource:
+    url: jdbc:postgresql://localhost:5432/postgres
+    username: postgres
+    password: postgres
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        default_schema: auth_schema
+  security:
+    oauth2:
+      client:
+        registration:
+          tara:
+            client-id: ru-int-ria-gov-inbox-sample-local
+            client-secret: ThquS5TCuZ9ZrTGYSBs9-N80
+            authorization-grant-type: authorization_code
+            redirect-uri: http://localhost/authorize/taara-callback
+            scope: openid
+            clientName: Riigi autentimisteenus (TARA)
+        provider:
+          tara:
+            authorization-uri: https://tara-test.ria.ee/oidc/authorize
+            token-uri: https://tara-test.ria.ee/oidc/token
+            jwk-set-uri: https://tara-test.ria.ee/oidc/jwks
+            issuer-uri: https://tara-test.ria.ee
+  flyway:
+    table: flyway_schema_history_auth
+    baseline-on-migrate: true
+    url: jdbc:postgresql://localhost:5432/postgres
+    user: postgres
+    password: postgres
+  session:
+    store-type: redis
+    timeout: 15m
+
+management:
+  endpoints:
+    web:
+      base-path: /oauth/actuator
+
+logging:
+  level:
+    root: info
+    tech.introduct: debug

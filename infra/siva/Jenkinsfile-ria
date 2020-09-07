@@ -1,0 +1,181 @@
+pipeline {
+  environment {
+      // add '/' at the end of PRIVATE_REGISTRY and PRIVATE_REGISTRYPush line if custom registry is used
+      PRIVATE_REGISTRY="harbor.riaint.ee/rh6"
+      PUBLIC_REGISTRY="nexus.ria.ee:8500/"
+      FQDN='rh6-component1-01.dev.riaint.ee'
+      IP='10.1.19.35'
+      SSL_DOCKER_IMAGE="nginx:latest"
+      DOCKER_TAG = "${currentBuild.number}"
+      MAVEN_REPO="https://nexus.ria.ee/repository/maven-public"
+      HADOOP_URI="hdfs://10.1.19.36:9000"
+      TARA_REDIRECT="https://10.1.19.35/authorize/taara-callback"
+      SYSLOG_HOST="10.1.19.35"
+      SIVA_RELEASE="https://nexus.ria.ee/repository/raw-public/open-eid/SiVa/archive/release-3.2.2.tar.gz"
+      //SLAVE_IMAGE="maven:3-alpine"
+      SLAVE_IMAGE="openjdk:8-jdk"
+      SLAVE_ARGS = "-v m2_repo:/tmp/.m2 -v /var/run/docker.sock:/var/run/docker.sock"
+
+  }
+  options { 
+    disableConcurrentBuilds() 
+  }
+  triggers {
+      pollSCM '* * * * *'
+  }
+  agent any
+  stages {
+    stage('Get Siva release') {
+        agent { label 'master' }
+        when {
+            anyOf {
+                changeset "infra/siva/**"
+                expression { currentBuild.getBuildCauses()[0].shortDescription.startsWith("Started by user") }
+                expression { return currentBuild.number == 1 }
+            }
+        }
+        steps {
+            dir("${env.WORKSPACE}/infra/siva") {
+                sh 'wget $SIVA_RELEASE'
+                sh 'tar -xvf release-3.2.2.tar.gz'
+                sh 'rm -f SiVa-release-3.2.2/pom.xml && cp pom.xml SiVa-release-3.2.2/pom.xml'
+                sh 'rm -f release-3.2.2.tar.gz'
+            }
+        }
+
+    }
+    stage('Generate client certificates') {
+        when {
+            anyOf {
+                changeset "infra/siva/**"
+                expression { currentBuild.getBuildCauses()[0].shortDescription.startsWith("Started by user") }
+                expression { return currentBuild.number == 1 }
+            }
+        }
+        agent {
+            docker {
+                image "$SLAVE_IMAGE"
+                registryUrl "https://${PUBLIC_REGISTRY}"
+                args "$SLAVE_ARGS"
+            }
+        }
+        steps {
+            sh './infra/pki/generate_client_cert.sh user-service-1 ./infra/pki/ca.crt ./infra/pki/ca.key'
+            sh './infra/pki/generate_client_cert.sh user-service-2 ./infra/pki/ca.crt ./infra/pki/ca.key'
+            stash includes: '*.jks', name: 'client-certs'
+        }
+    }
+    stage('Build Siva app') {
+        when {
+            anyOf {
+                changeset "infra/siva/**"
+                expression { currentBuild.getBuildCauses()[0].shortDescription.startsWith("Started by user") }
+                expression { return currentBuild.number == 1 }
+            }
+        }
+        agent {
+            docker {
+                image "$SLAVE_IMAGE"
+                registryUrl "https://${PUBLIC_REGISTRY}"
+                args "$SLAVE_ARGS"
+            }
+        }
+        steps {
+            dir("${env.WORKSPACE}/infra/siva/SiVa-release-3.2.2") {
+                sh 'M2_HOME=/tmp/.m2 ./mvnw -Pria clean package -DskipTests'
+                sh 'find . -name *.jar'
+                stash includes: 'siva-parent/siva-webapp/target/siva-webapp-3.2.2-exec.jar', name: 'siva-jar'
+                stash includes: 'validation-services-parent/xroad-validation-service/target/xroad-validation-service-3.2.2-exec.jar', name: 'xroad-validation-jar'
+                sh './mvnw clean'
+            }
+        }
+    }
+    stage('Build siva docker images') {
+        agent { label 'master' }
+        when {
+            anyOf {
+                changeset "infra/siva/**"
+                expression { currentBuild.getBuildCauses()[0].shortDescription.startsWith("Started by user") }
+                expression { return currentBuild.number == 1 }
+            }
+        }
+        steps {
+            script {
+                dir("${env.WORKSPACE}/infra/siva") {
+                    unstash 'siva-jar'
+                    unstash 'xroad-validation-jar'
+                    sivaImage = docker.build("siva-web-app:latest", "--build-arg JAR_FILE=siva-parent/siva-webapp/target/siva-webapp-3.2.2-exec.jar .")
+                    xroadValidationImage = docker.build("xroad-validation-service:latest", "--build-arg JAR_FILE=validation-services-parent/xroad-validation-service/target/xroad-validation-service-3.2.2-exec.jar .")
+                }
+            }
+        }
+    }
+    stage ('Push backend docker images to harbor') {
+        agent { label 'master' }
+        when {
+            anyOf {
+                changeset "infra/siva/**"
+                expression { currentBuild.getBuildCauses()[0].shortDescription.startsWith("Started by user") }
+                expression { return currentBuild.number == 1 }
+            }
+        }
+        steps {
+            script {
+                docker.withRegistry('https://${PRIVATE_REGISTRY}', 'jenkins-harbor') {
+                    sivaImage.push()
+                    xroadValidationImage.push()
+                }
+            }
+        }
+    }
+    stage('Deploy to Host') {
+        agent { label 'master' }
+        when {
+            anyOf {
+                changeset "infra/siva/**"
+                expression { currentBuild.getBuildCauses()[0].shortDescription.startsWith("Started by user") }
+                expression { return currentBuild.number == 1 }
+            }
+        }
+        steps {
+            script {
+                withCredentials([
+                        sshUserPrivateKey(credentialsId: "riajenk-ssh", usernameVariable: 'username', keyFileVariable: 'keyfile'),
+                        usernamePassword(credentialsId: 'jenkins-harbor', usernameVariable: 'dockerUserName', passwordVariable: 'dockerPassword')]){
+                    def remote = [:]
+                    remote.name = "${FQDN}"
+                    remote.host = "${IP}"
+                    remote.user = "${username}"
+                    remote.identityFile = "${keyfile}"
+                    remote.allowAnyHosts = true
+
+                    //put siva client certs to destination host
+                    unstash 'client-certs'
+
+                    sshCommand(remote: remote, command: "ls /opt/riajenk/siva_client_certs || rm -rf /opt/riajenk/siva_client_certs", sudo: true)
+                    sshCommand(remote: remote, command: "mkdir -p /opt/riajenk/siva_client_certs", sudo: false)
+                    sshPut remote: remote, from: 'user-service-1.jks', into: '/opt/riajenk/siva_client_certs/'
+                    sshPut remote: remote, from: 'user-service-2.jks', into: '/opt/riajenk/siva_client_certs/'
+
+                    //put compose and swagger files to the destination host
+                    sshPut remote: remote, from: 'infra/siva/docker-compose.yml', into: '/opt/riajenk/docker-compose-siva.yml'
+                    //install docker and docker-compose
+                    sshCommand(remote: remote, command: "sudo dpkg -S docker.io || sudo apt-get install -yf docker.io", sudo: true)
+                    sshCommand(remote: remote, command: "ls /usr/local/bin/docker-compose || sudo curl -L \"https://nexus.ria.ee/repository/raw-public/docker/compose/releases/download/1.25.5/docker-compose-\$(uname -s)-\$(uname -m)\" -o /usr/local/bin/docker-compose", sudo: true)
+                    sshCommand(remote: remote, command: "chmod +x /usr/local/bin/docker-compose", sudo: true)
+                    sshCommand(remote: remote, command: "docker login ${PRIVATE_REGISTRY} -u '${dockerUserName}' -p '${dockerPassword}'", sudo: true)
+                    sshCommand(remote: remote, command: "PRIVATE_REGISTRY='${PRIVATE_REGISTRY}/' PUBLIC_REGISTRY=${PUBLIC_REGISTRY} docker-compose -f /opt/riajenk/docker-compose-siva.yml pull siva-web-app", sudo: true)
+                    sshCommand(remote: remote, command: "PRIVATE_REGISTRY='${PRIVATE_REGISTRY}/' PUBLIC_REGISTRY=${PUBLIC_REGISTRY} docker-compose -f /opt/riajenk/docker-compose-siva.yml pull xroad-validation-service", sudo: true)
+                    sshCommand(remote: remote, command: "PRIVATE_REGISTRY='${PRIVATE_REGISTRY}/' PUBLIC_REGISTRY=${PUBLIC_REGISTRY} docker-compose -p rh6_deploy -f /opt/riajenk/docker-compose-siva.yml up -d", sudo: true)
+                    sshCommand(remote: remote, command: "docker exec rh6_lb sh -c 'nginx -s reload' || true", sudo: true)
+                }
+            }
+        }
+    }
+  }
+  post {
+    always {
+      deleteDir()
+    }
+  }
+}

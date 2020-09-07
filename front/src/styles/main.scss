@@ -1,0 +1,92 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&family=Roboto+Condensed:wght@300;400&display=swap');
+
+@import './material-icons-ie-hacked';
+@import './includes';
+
+@import 'veera-vue/styles/bootstrap-variables';
+@import '~bootstrap/scss/bootstrap';
+@import '~bootstrap-vue/src';
+
+@import 'veera-vue/styles';
+
+
+
+html, body {
+  height: 100%;
+}
+
+input[type="search"]::-webkit-search-decoration:hover,
+input[type="search"]::-webkit-search-cancel-button:hover {
+    cursor:pointer;
+}
+
+// override breaking veera reset
+small {
+  font-size:.8em;
+}
+
+// fix https://github.com/bootstrap-vue/bootstrap-vue/issues/4687
+// NB: updating to bootstrap-vue 2.15 and bootstrap 4.5 doesn’t help
+button:disabled {
+  cursor: unset;
+}
+
+// workaround for https://github.com/twbs/bootstrap/issues/28381
+.text-break {
+  // for inline elements
+  word-break: break-all !important; // Firefox, > Edge 18
+  word-break: break-word !important; // IE, < Edge 18, Chrome
+  // for block elements
+  overflow-wrap: break-word !important;
+}
+
+.flipped {
+  transform: scaleX(-1);
+}
+
+.center-content-using-flex {
+  @include center-content-using-flex;
+}
+
+.midcenter {
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.text-capitalize-first {
+  &::first-letter {
+    text-transform: uppercase;
+  }
+}
+
+.overlay-default {
+  .spinner-border {
+    color: getColor(dark-tangerine-12);
+  }
+}
+
+.b-toast, #my-toast__toast_outer {  // todo
+  header.toast-header {
+    background: inherit !important;  // todo
+    font-size: $o-font-size-lg;
+    border: none;
+    color: getColor(black-coral-18);
+    strong {
+      font-weight: normal;
+    }
+  }
+  .toast {
+    padding: 1em;
+    border-radius: 5px;
+    font-size: 14px;
+    color: getColor(black-coral-18);
+  }
+  &.b-toast-info {
+    .toast {
+      border: 2px solid getColor(sapphire-blue-10);
+      background-color: getColor(sapphire-blue-1);
+    }
+  }
+}
